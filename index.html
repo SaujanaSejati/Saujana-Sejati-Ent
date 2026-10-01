@@ -655,52 +655,66 @@ let audioCtx=null;
 
 function initNotificationAudio(){
   try{
-    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended')audioCtx.resume();
-  }catch(e){}
+    const AudioCtor=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtor)return false;
+    audioCtx=audioCtx||new AudioCtor();
+    return true;
+  }catch(e){
+    console.warn('Audio penggera tidak tersedia:',e);
+    return false;
+  }
 }
 
-function playBookingSound(){
+async function playBookingSound(){
   try{
-    initNotificationAudio();
-    if(!audioCtx)return;
+    if(!initNotificationAudio()||!audioCtx)return false;
+    if(audioCtx.state==='suspended')await audioCtx.resume();
+    if(audioCtx.state!=='running')return false;
     const now=audioCtx.currentTime;
-    [0,0.16,0.32].forEach((delay,i)=>{
+    [0,0.22,0.44,0.66].forEach((delay,i)=>{
       const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-      o.type='sine'; o.frequency.value=[880,1046,1318][i];
+      o.type='sine'; o.frequency.value=[880,1046,1318,1046][i];
       g.gain.setValueAtTime(0.0001,now+delay);
-      g.gain.exponentialRampToValueAtTime(0.22,now+delay+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.14);
-      o.connect(g);g.connect(audioCtx.destination);o.start(now+delay);o.stop(now+delay+0.15);
+      g.gain.exponentialRampToValueAtTime(0.28,now+delay+0.025);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.19);
+      o.connect(g);g.connect(audioCtx.destination);
+      o.start(now+delay);o.stop(now+delay+0.2);
     });
-  }catch(e){}
+    return true;
+  }catch(e){
+    console.warn('Gagal memainkan bunyi penggera:',e);
+    return false;
+  }
 }
 
 async function enableNotifications(){
-  initNotificationAudio();
-  let granted=false;
+  const btn=document.getElementById('enableNotifBtn');
+  // Audio mesti dibuka melalui sentuhan/klik pengguna sebelum browser benarkan bunyi automatik.
+  const audioReady=initNotificationAudio();
+  let soundReady=false;
+  if(audioReady&&audioCtx){
+    try{
+      if(audioCtx.state==='suspended')await audioCtx.resume();
+      soundReady=audioCtx.state==='running';
+    }catch(e){console.warn('Audio resume gagal:',e)}
+  }
+  let permission='unsupported';
   if('Notification' in window){
     try{
-      if(Notification.permission==='default') await Notification.requestPermission();
-      granted=Notification.permission==='granted';
-    }catch(e){console.error('Notification permission error',e)}
+      if(Notification.permission==='default')permission=await Notification.requestPermission();
+      else permission=Notification.permission;
+    }catch(e){permission=Notification.permission||'denied';}
   }
-  const btn=document.getElementById('enableNotifBtn');
-  if(granted){
-    if(btn)btn.textContent='🔔 Notifikasi Aktif';
-    try{
-      new Notification('🔔 Saujana Sejati', {
-        body:'Notifikasi Admin sudah aktif. Sistem sedia menerima booking baru.'
-      });
-    }catch(e){}
-    playBookingSound();
-    showLiveNotification({
-      customer_name:'Sistem',
-      cabinet_type:'Notifikasi diaktifkan'
-    });
+  if(btn)btn.textContent=(permission==='granted'?'🔔 Notifikasi Aktif':'🔊 Penggera Diaktifkan');
+  if(soundReady)await playBookingSound();
+  if(permission==='granted'){
+    try{new Notification('Saujana Sejati — Penggera Aktif',{body:'Bunyi dan notifikasi akan digunakan apabila booking baru diterima semasa sistem dibuka.'});}catch(e){}
+    const rs=document.getElementById('realtimeStatus');
+    if(rs)rs.textContent='🟢 Penggera audio aktif'+(soundReady?'':' — bunyi disekat oleh browser')+' · Notifikasi browser dibenarkan';
   }else{
-    if(btn)btn.textContent='🔔 Semak Tetapan iPhone';
-    alert('Notifikasi belum dibenarkan. Pastikan Notifications untuk “Saujana Sejati” di iPhone ialah ON.');
+    const rs=document.getElementById('realtimeStatus');
+    if(rs)rs.textContent='🟡 Bunyi '+(soundReady?'aktif':'mungkin disekat browser')+' · Notifikasi browser belum dibenarkan';
+    alert('Penggera bunyi telah diuji. Untuk notifikasi pop-up, benarkan Notifications bagi laman admin ini melalui tetapan browser. Pastikan tab admin dibuka; browser mungkin menyekat bunyi jika belum diaktifkan melalui butang ini.');
   }
 }
 
