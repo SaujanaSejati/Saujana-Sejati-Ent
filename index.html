@@ -563,16 +563,21 @@ function escAttr(x){return esc(x).replace(/'/g,'&#39;')}
 const CUSTOMER_ASSET_BASE='https://saujanasejati.github.io/Saujana-Sejati-Customer/';
 function staticCatalogRows(){return catData.map((x,i)=>({id:'static-'+i,name:x[0],category:x[0],description:'Contoh hasil kerja Saujana Sejati Ent',image_url:CUSTOMER_ASSET_BASE+x[1],active:true,isStatic:true}))}
 function resolveCatalogImage(x){
-  if(x?.image_path){
+  // Utamakan URL yang memang disimpan dalam rekod; image_path mungkin
+  // mengandungi URL penuh daripada versi lama sistem.
+  const path=String(x?.image_path||'').trim();
+  if(/^https?:\/\//i.test(path))return path;
+  if(path){
     try{
-      const u=supabaseClient.storage.from('catalog').getPublicUrl(x.image_path)?.data?.publicUrl;
+      const cleanPath=path.replace(/^catalog\//,'').replace(/^\//,'');
+      const u=supabaseClient.storage.from('catalog').getPublicUrl(cleanPath)?.data?.publicUrl;
       if(u)return u;
     }catch(e){}
   }
   const raw=String(x?.image_url||'').trim();
   if(!raw)return '';
   if(/^https?:\/\//i.test(raw))return raw;
-  return CUSTOMER_ASSET_BASE+raw.replace(/^\.\//,'');
+  return CUSTOMER_ASSET_BASE+raw.replace(/^\.\//,'').replace(/^\//,'');
 }
 async function loadCatalogAdmin(){
   const g=document.getElementById('catalogGrid');
@@ -640,7 +645,21 @@ function renderCatalog(filter){
    const imgWrap=document.createElement('div'); imgWrap.style='position:relative;background:#f3f4f6;min-height:210px;display:grid;place-items:center';
    const img=document.createElement('img'); const imageUrl=resolveCatalogImage(x); img.src=imageUrl; img.alt=x.name||x.category||''; img.loading='lazy';
    img.style='width:100%;height:210px;object-fit:cover;display:block';
-   img.onerror=()=>{img.onerror=null;img.removeAttribute('src');img.alt='Gambar tidak tersedia';img.style='height:210px;object-fit:contain;padding:24px';imgWrap.style.background='#eceff1';};
+   img.onerror=()=>{
+     // Jika URL image_path lama rosak, cuba image_url dahulu.
+     const fallback=String(x?.image_url||'').trim();
+     const fallbackUrl=fallback?( /^https?:\/\//i.test(fallback) ? fallback : CUSTOMER_ASSET_BASE+fallback.replace(/^\.\//,'').replace(/^\//,'') ):'';
+     if(fallbackUrl && img.src!==fallbackUrl && img.dataset.fallbackTried!=='1'){
+       img.dataset.fallbackTried='1';img.src=fallbackUrl;return;
+     }
+     // Rekod lama yang tiada URL gambar cuba padankan semula dengan gambar statik asal.
+     const legacyId=String(x?.legacy_static_id||x?.id||'');
+     const staticMatch=staticCatalogRows().find(row=>row.id===legacyId);
+     if(staticMatch && staticMatch.image_url && img.dataset.staticTried!=='1' && img.src!==staticMatch.image_url){
+       img.dataset.staticTried='1';img.src=staticMatch.image_url;return;
+     }
+     img.onerror=null;img.removeAttribute('src');img.alt='Gambar tidak tersedia';img.style='height:210px;object-fit:contain;padding:24px';imgWrap.style.background='#eceff1';
+   };
    imgWrap.appendChild(img);
    const preview=document.createElement('button'); preview.type='button'; preview.textContent='🔍 Preview'; preview.style='position:absolute;right:10px;bottom:10px;border:0;border-radius:8px;padding:8px 10px;background:#111;color:#fff;font-weight:900'; preview.onclick=()=>previewCatalogImage(imageUrl,x.name||x.category);
    imgWrap.appendChild(preview); article.appendChild(imgWrap);
