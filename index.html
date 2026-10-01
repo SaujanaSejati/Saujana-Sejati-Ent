@@ -1627,10 +1627,13 @@ function printAnnualRecords(){
   win.document.open();
   win.document.write(`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Rekod Tahunan ${year} - Saujana Sejati Ent</title><style>
     *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#17202a;margin:24px;font-size:12px}
-    .letterhead{display:flex;align-items:center;gap:16px;padding:0 0 14px;margin-bottom:14px;border-bottom:3px solid #1f6f43}
-    .letterhead img{width:86px;height:86px;object-fit:contain}
-    .company-name{font-size:24px;font-weight:800;letter-spacing:.3px;color:#1f6f43;margin:0 0 4px}
-    .company-tagline{font-size:12px;color:#555;margin:0 0 8px}
+    .letterhead{display:flex;align-items:center;gap:12px;padding:0 0 10px;margin-bottom:12px;border-bottom:3px solid #e50914}
+    .letterhead img{width:86px;height:58px;object-fit:contain;flex-shrink:0}
+    .company-name{font-size:20px;font-weight:900;letter-spacing:.2px;color:#171717;margin:0 0 3px}
+    .company-tagline{font-size:10px;font-weight:800;letter-spacing:1px;color:#333;margin:0 0 5px;text-transform:uppercase}
+    .company-address,.company-contact{font-size:10px;line-height:1.4;margin:2px 0;color:#171717}
+    .company-contact{font-weight:800}
+    .report-heading{margin-left:auto;text-align:right;align-self:flex-start;font-size:11px}
     h1{font-size:20px;margin:0 0 5px} .sub{color:#555;margin-bottom:18px}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 20px}
     .stat{border:1px solid #cfd6dd;border-radius:8px;padding:12px}.label{color:#555;font-size:11px}.value{font-size:18px;font-weight:800;margin-top:6px}
@@ -1641,10 +1644,12 @@ function printAnnualRecords(){
   </style></head><body>
   <div class="printbar"><button onclick="window.print()">🖨️ Cetak / Simpan PDF</button> <button onclick="window.close()">Tutup</button></div>
   <div class="letterhead">
-    <img src="https://mrhairi90.github.io/Saujana-Sejati-Ent/logo-saujana-sejati.jpg" alt="Logo Saujana Sejati Ent" onerror="this.style.display='none'">
-    <div><div class="company-name">SAUJANA SEJATI ENT</div><p class="company-tagline">Custom Cabinet &amp; Interior</p><h1>REKOD TAHUNAN</h1></div>
+    <img src="https://saujanasejati.github.io/Saujana-Sejati-Ent/logo-saujana-sejati.jpg" alt="Logo Saujana Sejati Ent" onerror="this.style.display='none'">
+    <div><div class="company-name">SAUJANA SEJATI ENTERPRISE</div><p class="company-tagline">CUSTOM CABINET &amp; INTERIOR</p><p class="company-address">15, Persiaran Prima 1, Taman Jalan Bougainvillea,<br>33000 Kuala Kangsar, Perak.</p><p class="company-contact">WhatsApp: 011-1323 2186</p></div>
+    <div class="report-heading"><b>TAHUN:</b> ${String(year).replace(/[&<>"]/g,'')}<br><b>TARIKH CETAK:</b> ${new Date().toLocaleDateString('ms-MY')}</div>
   </div>
-  <div class="sub">Tahun: <b>${String(year).replace(/[&<>"]/g,'')}</b> · Dicetak pada: ${new Date().toLocaleDateString('ms-MY')}</div>
+  <h1>REKOD TAHUNAN</h1>
+  <div class="sub">Ringkasan rekod jualan, deposit dan baki bagi tahun yang dipilih.</div>
   <div class="stats"><div class="stat"><div class="label">Jumlah Rekod</div><div class="value">${count}</div></div><div class="stat"><div class="label">Jumlah Jualan</div><div class="value">${sales}</div></div><div class="stat"><div class="label">Jumlah Deposit</div><div class="value">${deposit}</div></div></div>
   ${table}
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>
