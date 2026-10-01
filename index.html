@@ -455,13 +455,17 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   <div class="dashboard-projects project-item"><h3>📋 Senarai Projek</h3><div id="dashboardProjectList">Memuatkan projek...</div></div>
   <div class="project-item" style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div><h3 style="margin:0 0 5px">📅 Rekod Tahunan</h3><div class="muted">Lihat rekod booking, quotation, jualan dan deposit mengikut tahun.</div></div>
+      <div><h3 style="margin:0 0 5px">📅 Rekod Tahunan</h3><div class="muted">Lihat rekod tahunan atau tapis mengikut bulan, termasuk jualan, deposit dan baki.</div></div>
       <button type="button" class="btn blue" id="annualReportToggle" onclick="toggleAnnualReport()">📊 Lihat Rekod Tahunan</button>
     </div>
     <div id="annualReportPanel" style="display:none;margin-top:16px">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
         <label for="annualReportYear" style="font-weight:800">Pilih tahun:</label>
-        <select id="annualReportYear" onchange="renderAnnualRecords()" style="padding:10px;border:1px solid #cfd6dd;border-radius:8px;min-width:140px"></select>
+        <select id="annualReportYear" onchange="renderAnnualRecords()" style="padding:10px;border:1px solid #cfd6dd;border-radius:8px;min-width:120px"></select>
+        <label for="annualReportMonth" style="font-weight:800">Pilih bulan:</label>
+        <select id="annualReportMonth" onchange="renderAnnualRecords()" style="padding:10px;border:1px solid #cfd6dd;border-radius:8px;min-width:150px">
+          <option value="all">Semua Bulan</option><option value="01">Januari</option><option value="02">Februari</option><option value="03">Mac</option><option value="04">April</option><option value="05">Mei</option><option value="06">Jun</option><option value="07">Julai</option><option value="08">Ogos</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Disember</option>
+        </select>
         <button type="button" class="btn" style="background:#555" onclick="renderAnnualRecords()">↻ Muat Semula</button>
         <button type="button" class="btn green" onclick="printAnnualRecords()">🖨️ Cetak / Simpan PDF</button>
       </div>
@@ -1531,9 +1535,13 @@ function renderAnnualRecords(){
   yearSelect.innerHTML=years.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join('');
   yearSelect.value=years.includes(previous)?previous:(years.includes(currentYear)?currentYear:years[0]);
   const year=yearSelect.value;
+  const monthSelect=document.getElementById('annualReportMonth');
+  const month=monthSelect?monthSelect.value:'all';
   const records=[];
   (websiteBookings||[]).forEach(b=>{
     if(String(annualRecordDate(b))!==year)return;
+    const recordDate=String(b.booking_date||b.created_at||b.updated_at||'');
+    if(month!=='all' && recordDate.slice(5,7)!==month)return;
     const status=b.status||'baru';
     const total=(Number(b.estimated_price)||0)+(Number(b.nilai_tambahan)||0);
     const deposit=Number(b.deposit_amount??b.deposit)||0;
@@ -1541,6 +1549,8 @@ function renderAnnualRecords(){
   });
   localProjects.forEach(p=>{
     if(String(annualRecordDate(p))!==year)return;
+    const recordDate=String(p.date||p.created_at||p.updated_at||'');
+    if(month!=='all' && recordDate.slice(5,7)!==month)return;
     const total=Number(String(p.total||'').replace(/[^0-9.]/g,''))||0;
     const deposit=Number(p.deposit)||0;
     records.push({name:p.name||'Customer',date:p.date||'-',kind:'Quotation Admin',status:'QUOTATION',total,deposit,cancelled:false});
