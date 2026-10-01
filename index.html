@@ -357,7 +357,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
     <small>Admin Panel</small>
   </div>
   <button data-side="dashboard" onclick="showScreen('dashboard')">🏠 <span>Dashboard</span></button>
-  <button data-side="projects" onclick="showScreen('projects')">📋 <span>Booking Baru</span><span id="sideNewBadge" class="side-badge" style="display:none">0</span></button>
+  <button data-side="bookings" onclick="showScreen('bookings')">📋 <span>Booking Baru</span><span id="sideNewBadge" class="side-badge" style="display:none">0</span></button>
   <button data-side="projects" onclick="showScreen('projects')">📁 <span>Projek Customer</span></button>
   <button data-side="catalog" onclick="showScreen('catalog')">▤ <span>Katalog Material</span></button>
   <button data-side="quote" onclick="showScreen('quote')">▦ <span>Pengiraan Anggaran</span></button>
@@ -383,7 +383,9 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 <div class="bottom"><div class="tip"><span class="ico">⌖</span><div><b>UKUR DENGAN TEPAT</b><small>Dapatkan ukuran sebenar ruang anda.</small></div></div><div class="tip"><span class="ico">▤</span><div><b>PILIH REKAAN</b><small>Tentukan jenis kabinet dan material.</small></div></div><div class="tip"><span class="ico">▣</span><div><b>KIRA HARGA</b><small>Mengikut formula yang sesuai.</small></div></div><div class="tip"><span class="ico">◉</span><div><b>HUBUNGI KAMI</b><small>Dapatkan sebut harga rasmi.</small></div></div><div class="notes"><b>CATATAN :</b><textarea id="notes2"></textarea></div></div><div class="contactbar">WhatsApp &nbsp; 011-1323 2186 &nbsp; | &nbsp; SAUJANA SEJATI ENTERPRISE</div>
 <div class="summarybox"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:20px">JUMLAH KESELURUHAN</b><strong id="grand" style="font-size:28px;color:#e50914">RM 0.00</strong></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px"><label style="font-weight:800">Deposit (RM)<input id="deposit" type="number" min="0" value="0" style="display:block;width:100%;padding:10px;border:1px solid #bbb;border-radius:7px;margin-top:4px"></label><div style="background:#fff7e8;border:1px solid #efd39c;border-radius:7px;padding:10px;font-weight:800">BAKI <span id="balance" style="float:right;color:#8b5c00">RM 0.00</span></div></div></div><div class="actions4"><button class="btn reset" onclick="resetAll()">↻ RESET SEMUA</button><button class="btn green" onclick="saveQuote()">▣ SIMPAN QUOTATION</button><button class="btn blue" onclick="printQuote()">▣ CETAK / PDF</button><button class="btn send" style="background:#0a9f59" onclick="shareQuote()">◉ HANTAR KE WHATSAPP</button></div></div></section>
 <section id="projects" class="screen"><div class="wrap"><div class="section-title"><div><h2>Projek Customer</h2><div class="muted">Quotation Admin + Booking Customer</div></div><button class="btn red" onclick="showScreen('quote')">+ Quotation</button></div><div id="projectList"></div>
-<div class="booking-section">
+</div></section>
+
+<section id="bookings" class="screen"><div class="wrap"><div class="section-title"><div><h2>Booking Baru</h2><div class="muted">Tempahan masuk daripada website Customer. Urus status dan tindakan di sini.</div></div></div><div class="booking-section">
   <div class="booking-section-head">
     <span>🌐 BOOKING / ORDER DARI WEBSITE CUSTOMER <span id="newBookingBadge" style="display:none;background:#e50914;color:#fff;border-radius:999px;padding:4px 9px;font-size:12px;margin-left:6px">0 BARU</span></span>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><button id="enableNotifBtn" class="btn" style="background:#111;color:#fff" onclick="enableNotifications()">🔔 Aktifkan</button><button class="btn blue" onclick="loadWebsiteBookings()">↻ Refresh</button></div>
@@ -397,7 +399,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   <select id="bookingAgentFilter" class="booking-search" style="max-width:190px" onchange="renderWebsiteBookings()"><option value="semua">Semua PIC</option><option value="hairi">Hairi</option></select>
 </div>
 <div id="realtimeStatus" style="padding:0 14px 10px;font-size:12px;color:#68707b">🔄 Menyambung notifikasi booking...</div><div id="websiteBookings" class="booking-list"><div class="booking-empty">Memuatkan booking...</div></div>
-</div></div></section>
+</div></div></div></section>
 
 <section id="agents" class="screen">
 <div class="wrap">
@@ -445,7 +447,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 </section>
 <section id="dashboard" class="screen">
 <div class="wrap">
-  <div class="section-title"><div><h2>Dashboard Admin</h2><div class="muted">Ringkasan booking, projek, jualan dan deposit</div></div><button class="btn red" onclick="showScreen('projects')">📋 Lihat Booking</button></div>
+  <div class="section-title"><div><h2>Dashboard Admin</h2><div class="muted">Ringkasan booking, projek, jualan dan deposit</div></div><button class="btn red" onclick="showScreen('bookings')">📋 Lihat Booking</button></div>
   <div class="dash-grid">
     <div class="dash-stat" onclick="showScreen('projects')" style="cursor:pointer"><span class="stat-ico">🛒</span>Booking Baru<div class="n" id="dashNew">0</div><div class="muted">Menunggu tindakan</div></div>
     <div class="dash-stat" onclick="showScreen('projects')" style="cursor:pointer"><span class="stat-ico">👥</span>Jumlah Projek<div class="n" id="sproj">0</div><div class="muted">Klik untuk lihat semua</div></div>
@@ -498,7 +500,7 @@ const SUPABASE_URL="https://wvxaiojnxwzcdrczbdup.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let websiteBookings=[];
-const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',dashboard:'navDashboard',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
+const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navProjects',dashboard:'navDashboard',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
   if(id==='agents'&&window.currentUserRole!=='admin'){
     id='projects';
@@ -512,6 +514,7 @@ function showScreen(id){
   window.scrollTo({top:0,behavior:'smooth'});
 
   if(id==='projects'||id==='dashboard')renderData();
+  if(id==='bookings')loadWebsiteBookings();
   if(id==='catalog')renderCatalog('Semua');
   if(id==='agents')loadAgents();
   if(id==='videoHome')loadHomepageVideos();
