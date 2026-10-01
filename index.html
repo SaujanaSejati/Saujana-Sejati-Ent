@@ -1018,6 +1018,8 @@ function recalcEditQuote(){
  if(t)t.textContent=money(total);if(bal)bal.textContent=money(balance);
 }
 function editBookingQuotation(id){
+  if(window.currentUserRole==='agent'){alert('Akses terhad: Agent tidak dibenarkan mengedit quotation.');return;}
+
  const b=websiteBookings.find(x=>String(x.id)===String(id));if(!b)return;
  const extras=getQuoteExtras(id);
  const acc=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
@@ -1226,6 +1228,8 @@ async function getDepositProofUrl(b){
  return null;
 }
 function printBookingQuote(id){
+  if(window.currentUserRole==='agent'){alert('Akses terhad: Cetakan quotation hanya untuk Admin.');return;}
+
  const q=getEffectiveQuotation(id); if(!q){alert('Booking tidak ditemui.');return;}
  const b=q.b;
  const quoteRows=quotationRowsHtml(q);
@@ -1236,6 +1240,8 @@ function printBookingQuote(id){
  document.body.appendChild(root);
 }
 async function printBookingReceipt(id){
+  if(window.currentUserRole==='agent'){alert('Akses terhad: Cetakan resit hanya untuk Admin.');return;}
+
  const q=getEffectiveQuotation(id);if(!q){alert('Booking tidak ditemui.');return;}
  const proofUrl=await getDepositProofUrl(q.b);
  const quoteRows=quotationRowsHtml(q);
