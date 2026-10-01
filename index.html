@@ -1199,8 +1199,8 @@ async function saveStructuredQuotation(id){
  printBookingQuote(id);
 }
 
-function getEffectiveQuotation(id){
- const b=websiteBookings.find(x=>String(x.id)===String(id));
+function getEffectiveQuotation(id,bookingOverride=null){
+ const b=bookingOverride||websiteBookings.find(x=>String(x.id)===String(id));
  if(!b)return null;
  let structure=null,extras=[];
  try{structure=JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){}
@@ -1282,7 +1282,8 @@ async function showBookingDetail(id){
     console.warn('Ralat ambil booking terkini:',e);
   }
 
-  const q=getEffectiveQuotation(id);
+  // Gunakan rekod terkini dari Supabase untuk semua maklumat dalam detail.
+  const q=getEffectiveQuotation(id,b);
   if(!q)return;
   const acc=q.accessories.join(', ')||'-';
   const jualan=q.item1.price+q.item2.price;
