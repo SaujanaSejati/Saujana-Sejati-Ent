@@ -996,7 +996,7 @@ box.innerHTML=arr.map(b=>{
 const s=b.status||'baru', label={baru:'BARU',disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI',dibatalkan:'DIBATALKAN'}[s]||String(s).toUpperCase();
 const acc=Array.isArray(b.accessories)?b.accessories.join(', '):(b.accessories||'-');
 const isNew=s==='baru'?' is-new':'', isCancelled=s==='dibatalkan'?' is-cancelled':'';
-return `<div class="booking-card${isNew}${isCancelled}"><div class="booking-top"><div><div class="booking-name">${esc(b.customer_name||'Customer')}</div><div class="booking-meta">${esc(b.phone||'-')} · Lawatan: ${esc(formatDateDMY(b.booking_date))} · ${esc(b.booking_time||'-')} · PIC: ${esc(getBookingAgentName(b))}</div></div><span class="bstatus ${esc(s)}">${label}</span></div><div class="booking-detail"><b>Jenis:</b> ${esc(b.cabinet_type||'-')}<br><b>Material:</b> ${esc(b.material||'-')}<br><b>Warna:</b> ${esc(b.color_name||'-')} ${b.color_hex?`<span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${esc(b.color_hex)};border:1px solid #999;vertical-align:middle;margin-left:5px"></span> <span style="font-size:11px;color:#68707b">${esc(b.color_hex)}</span>`:''}<br><b>Ukuran:</b> ${esc(b.measurement||'-')}<br><b>Alamat:</b> ${esc(b.address||'-')}<br><b>Aksesori:</b> ${esc(acc)}<br><b>Catatan:</b> ${esc(b.notes||'-')}</div><div class="booking-value"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><label>Nilai Jualan:<input id="price-${esc(b.id)}" type="number" min="0" step="0.01" value="${esc(b.estimated_price??'')}" placeholder="RM 0.00"></label><label>Nilai Tambahan:<input id="additional-${esc(b.id)}" type="number" min="0" step="0.01" value="${esc(b.nilai_tambahan??'')}" placeholder="RM 0.00"></label><label>Deposit:<input id="deposit-${esc(b.id)}" type="number" min="0" step="0.01" value="${esc(b.deposit??'')}" placeholder="RM 0.00"></label></div><div style="display:flex;gap:12px;margin-top:9px;flex-wrap:wrap;align-items:center"><button class="btn-mini" style="background:#126bd6" onclick="saveBookingFinance('${b.id}')">Simpan Nilai</button><span style="font-weight:900">Jumlah: ${money((parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0))}</span><span style="font-weight:900">Baki: ${money(Math.max(0,(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0)-(parseFloat(b.deposit)||0)))}</span></div></div><div class="booking-actions"><button class="btn-view" onclick="showBookingDetail('${b.id}')">👁 Lihat</button><button class="btn-confirm" onclick="updateBookingStatus('${b.id}','disahkan')">✓ Sahkan</button><button class="btn-progress" onclick="updateBookingStatus('${b.id}','dalam_proses')">⚙ Dalam Proses</button><button type="button" class="btn-done" onclick="window.updateBookingStatus('${b.id}','selesai')">✓ Selesai</button><button class="btn-cancel" onclick="window.updateBookingStatus('${b.id}','dibatalkan')">✕ Batal</button><button class="btn-wa" onclick="waBooking('${b.id}')">WhatsApp</button>${s==='dibatalkan'?`<label class="cancel-check"><input type="checkbox" checked disabled> Dibatalkan</label><button type="button" class="btn-del" onclick="window.deleteBooking('${b.id}')">🗑 Padam</button>`:''}</div></div>`;
+return `<div class="booking-card${isNew}${isCancelled}"><div class="booking-top"><div><div class="booking-name">${esc(b.customer_name||'Customer')}</div><div class="booking-meta">${esc(b.phone||'-')} · Lawatan: ${esc(formatDateDMY(b.booking_date))} · ${esc(b.booking_time||'-')} · PIC: ${esc(getBookingAgentName(b))}</div></div><span class="bstatus ${esc(s)}">${label}</span></div><div class="booking-detail"><b>Jenis:</b> ${esc(b.cabinet_type||'-')}<br><b>Material:</b> ${esc(b.material||'-')}<br><b>Warna:</b> ${esc(b.color_name||'-')} ${b.color_hex?`<span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${esc(b.color_hex)};border:1px solid #999;vertical-align:middle;margin-left:5px"></span> <span style="font-size:11px;color:#68707b">${esc(b.color_hex)}</span>`:''}<br><b>Ukuran:</b> ${esc(b.measurement||'-')}<br><b>Alamat:</b> ${esc(b.address||'-')}<br><b>Aksesori:</b> ${esc(acc)}<br><b>Catatan:</b> ${esc(readQuotationMeta(b.notes).notes||'-')}</div><div class="booking-value"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><label>Nilai Jualan:<input id="price-${esc(b.id)}" type="number" min="0" step="0.01" value="${esc(b.estimated_price??'')}" placeholder="RM 0.00"></label><label>Nilai Tambahan:<input id="additional-${esc(b.id)}" type="number" min="0" step="0.01" value="${esc(b.nilai_tambahan??'')}" placeholder="RM 0.00"></label><label>Deposit:<input id="deposit-${esc(b.id)}" type="number" min="0" step="0.01" value="${esc(b.deposit??'')}" placeholder="RM 0.00"></label></div><div style="display:flex;gap:12px;margin-top:9px;flex-wrap:wrap;align-items:center"><button class="btn-mini" style="background:#126bd6" onclick="saveBookingFinance('${b.id}')">Simpan Nilai</button><span style="font-weight:900">Jumlah: ${money((parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0))}</span><span style="font-weight:900">Baki: ${money(Math.max(0,(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0)-(parseFloat(b.deposit)||0)))}</span></div></div><div class="booking-actions"><button class="btn-view" onclick="showBookingDetail('${b.id}')">👁 Lihat</button><button class="btn-confirm" onclick="updateBookingStatus('${b.id}','disahkan')">✓ Sahkan</button><button class="btn-progress" onclick="updateBookingStatus('${b.id}','dalam_proses')">⚙ Dalam Proses</button><button type="button" class="btn-done" onclick="window.updateBookingStatus('${b.id}','selesai')">✓ Selesai</button><button class="btn-cancel" onclick="window.updateBookingStatus('${b.id}','dibatalkan')">✕ Batal</button><button class="btn-wa" onclick="waBooking('${b.id}')">WhatsApp</button>${s==='dibatalkan'?`<label class="cancel-check"><input type="checkbox" checked disabled> Dibatalkan</label><button type="button" class="btn-del" onclick="window.deleteBooking('${b.id}')">🗑 Padam</button>`:''}</div></div>`;
 }).join('');
 }
 function getQuoteExtras(id){
@@ -1027,10 +1027,10 @@ function recalcEditQuote(){
 function editBookingQuotation(id){
  const b=websiteBookings.find(x=>String(x.id)===String(id));if(!b)return;
  if(window.currentUserRole==='agent'&&!canAgentEditBooking(b)){alert('Akses ditolak: Anda hanya boleh mengedit quotation untuk booking PIC anda sendiri.');return;}
- const extras=getQuoteExtras(id);
+ const persistedMeta=readQuotationMeta(b.notes); const extras=persistedMeta.extras.length?persistedMeta.extras:getQuoteExtras(id);
  const acc=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
  const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=Number(b.deposit??b.deposit_amount??0);
- const savedStructure=(()=>{try{return JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){return null}})();
+ const savedStructure=(()=>{try{return readQuotationMeta(b.notes).structure||JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){return null}})();
  const bottomPrice=Number(savedStructure?.bottomPrice ?? sale);
  const topPrice=Number(savedStructure?.topPrice ?? 0);
  const bottomName=savedStructure?.bottomName || b.cabinet_type || 'Kabinet Bawah';
@@ -1106,7 +1106,7 @@ function editBookingQuotation(id){
 
    <div style="border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:14px">
     <h3 style="margin:0 0 12px">📝 CATATAN</h3>
-    <textarea id="editNotes" style="width:100%;min-height:100px;padding:10px">${esc(b.notes||'')}</textarea>
+    <textarea id="editNotes" style="width:100%;min-height:100px;padding:10px">${esc(readQuotationMeta(b.notes).notes||'')}</textarea>
    </div>
 
    <div style="border:1px solid #ddd;border-radius:10px;padding:14px">
@@ -1183,7 +1183,7 @@ async function saveStructuredQuotation(id){
   booking_date:document.getElementById('editBookingDate')?.value||null,
   booking_time:document.getElementById('editBookingTime')?.value||null,
   accessories,
-  notes:document.getElementById('editNotes')?.value||'',
+  notes:notesWithQuotationMeta(document.getElementById('editNotes')?.value||'',structure,extras),
   estimated_price:bottomPrice+topPrice,
   nilai_tambahan:additional,
   deposit:deposit
@@ -1199,12 +1199,25 @@ async function saveStructuredQuotation(id){
  printBookingQuote(id);
 }
 
+const QUOTATION_META_MARKER='\n<!--SAUJANA_QUOTATION_META:';
+function readQuotationMeta(notes){
+ const raw=String(notes||'');const start=raw.lastIndexOf(QUOTATION_META_MARKER);
+ if(start<0)return {notes:raw,structure:null,extras:[]};
+ const end=raw.indexOf('-->',start);if(end<0)return {notes:raw,structure:null,extras:[]};
+ try{const meta=JSON.parse(raw.slice(start+QUOTATION_META_MARKER.length,end));return {notes:raw.slice(0,start).trimEnd(),structure:meta.structure||null,extras:Array.isArray(meta.extras)?meta.extras:[]};}
+ catch(e){return {notes:raw,structure:null,extras:[]};}
+}
+function notesWithQuotationMeta(notes,structure,extras){
+ const clean=readQuotationMeta(notes).notes;
+ return clean+QUOTATION_META_MARKER+JSON.stringify({structure,extras})+'-->';
+}
 function getEffectiveQuotation(id,bookingOverride=null){
  const b=bookingOverride||websiteBookings.find(x=>String(x.id)===String(id));
  if(!b)return null;
- let structure=null,extras=[];
- try{structure=JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){}
- try{extras=JSON.parse(localStorage.getItem('saujana_quote_extras_'+id)||'[]')}catch(e){}
+ const persisted=readQuotationMeta(b.notes);
+ let structure=persisted.structure,extras=persisted.extras;
+ try{if(!structure)structure=JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){}
+ try{if(!extras.length)extras=JSON.parse(localStorage.getItem('saujana_quote_extras_'+id)||'[]')}catch(e){}
  if(!Array.isArray(extras))extras=[];
  const bottom=structure?.bottom||{};
  const top=structure?.top||{};
