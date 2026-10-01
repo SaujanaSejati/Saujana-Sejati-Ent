@@ -573,24 +573,42 @@ function resolveCatalogImage(x){
   return CUSTOMER_ASSET_BASE+raw.replace(/^\.\//,'');
 }
 async function loadCatalogAdmin(){
-  const {data,error}=await supabaseClient.from('catalog_items').select('*').order('created_at',{ascending:false});
-  dynamicCatalog=error?[]:(data||[]);
-  if(!error){
-    const existingLegacy=new Set(dynamicCatalog.map(x=>x.legacy_static_id).filter(Boolean));
-    const seed=staticCatalogRows().filter(x=>!existingLegacy.has(x.id)).map(x=>({
-      name:x.name,category:x.category,description:x.description,image_url:x.image_url,active:true,legacy_static_id:x.id
-    }));
-    if(seed.length){
-      const {error:seedError}=await supabaseClient.from('catalog_items').insert(seed);
-      if(!seedError){
-        const again=await supabaseClient.from('catalog_items').select('*').order('created_at',{ascending:false});
-        dynamicCatalog=again.data||dynamicCatalog;
-      }else{
-        console.warn('Katalog asal belum dapat dimigrasikan:',seedError);
+  const g=document.getElementById('catalogGrid');
+  if(g)g.innerHTML='<div class="project-item">⏳ Memuatkan katalog...</div>';
+  let error=null;
+  try{
+    const result=await supabaseClient.from('catalog_items').select('*').order('created_at',{ascending:false});
+    error=result.error;
+    dynamicCatalog=error?[]:(result.data||[]);
+    if(!error){
+      const existingLegacy=new Set(dynamicCatalog.map(x=>x.legacy_static_id).filter(Boolean));
+      const seed=staticCatalogRows().filter(x=>!existingLegacy.has(x.id)).map(x=>({
+        name:x.name,category:x.category,description:x.description,image_url:x.image_url,active:true,legacy_static_id:x.id
+      }));
+      if(seed.length){
+        const inserted=await supabaseClient.from('catalog_items').insert(seed);
+        if(!inserted.error){
+          const again=await supabaseClient.from('catalog_items').select('*').order('created_at',{ascending:false});
+          if(!again.error)dynamicCatalog=again.data||dynamicCatalog;
+          else error=again.error;
+        }else{
+          console.warn('Katalog contoh tidak dapat disalin ke database:',inserted.error);
+        }
       }
     }
+  }catch(e){
+    error=e;
+    dynamicCatalog=[];
+    console.error('Ralat memuatkan katalog:',e);
   }
   renderCatalog('Semua');
+  if(error&&g){
+    const note=document.createElement('div');
+    note.className='project-item';
+    note.style='margin-top:12px;border-left:4px solid #e50914';
+    note.textContent='⚠️ Data katalog database tidak dapat dimuatkan. Katalog contoh masih dipaparkan jika tersedia. Ralat: '+(error.message||'Sambungan database gagal');
+    g.prepend(note);
+  }
 }
 function catalogRows(){
  const legacyIds=new Set(dynamicCatalog.map(x=>x.legacy_static_id).filter(Boolean));
