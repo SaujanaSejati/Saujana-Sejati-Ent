@@ -466,9 +466,9 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   <div class="project-item" style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
       <div><h3 style="margin:0 0 5px">📅 Rekod Tahunan</h3><div class="muted">Lihat rekod tahunan atau tapis mengikut bulan, termasuk jualan, deposit dan baki.</div></div>
-      <button type="button" class="btn blue" id="annualReportToggle" onclick="toggleAnnualReport()">📊 Lihat Rekod Tahunan</button>
+      <button type="button" class="btn blue" id="annualReportToggle" onclick="toggleAnnualReport()">📊 Sembunyikan Rekod Tahunan</button>
     </div>
-    <div id="annualReportPanel" style="display:none;margin-top:16px">
+    <div id="annualReportPanel" style="display:block;margin-top:16px">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
         <label for="annualReportYear" style="font-weight:800">Pilih tahun:</label>
         <select id="annualReportYear" onchange="renderAnnualRecords()" style="padding:10px;border:1px solid #cfd6dd;border-radius:8px;min-width:120px"></select>
