@@ -558,7 +558,7 @@ function printQuote(){window.print()}
 const catData=[['Kabinet Dapur','kabinet-dapur-01.jpg'],['Kabinet Dapur','kabinet-dapur-03.jpg'],['Kabinet Dapur','kabinet-dapur-04.jpg'],['Kabinet Dapur','kabinet-dapur-05.jpg'],['Kabinet Dapur','kabinet-dapur-06.jpg'],['Kabinet Dapur','kabinet-dapur-07.jpg'],['Rak TV','rak-tv-01.jpg'],['Rak TV','rak-tv-02.jpg'],['Rak TV','rak-tv-03.jpg'],['Rak TV','rak-tv-04.jpg'],['Almari Bilik','almari-bilik-01.jpg'],['Almari Bilik','almari-bilik-02.jpg'],['Almari Bilik','almari-bilik-03.jpg'],['Panel Dinding','panel-dinding-01.jpg'],['Bawah Tangga','bawah-tangga-01.jpg'],['Rak Display','rak-display-01.jpg'],['Rak Display','rak-display-02.jpg']];
 let dynamicCatalog=[]; let catalogEditId=null; let catalogLegacyStaticId=null; let catalogLegacyStaticImage=null;
 function escAttr(x){return esc(x).replace(/'/g,'&#39;')}
-const CUSTOMER_ASSET_BASE='https://SaujanaSejati.github.io/Saujana-Sejati-Customer/';
+const CUSTOMER_ASSET_BASE='./';
 function staticCatalogRows(){return catData.map((x,i)=>({id:'static-'+i,name:x[0],category:x[0],description:'Contoh hasil kerja Saujana Sejati Ent',image_url:CUSTOMER_ASSET_BASE+x[1],active:true,isStatic:true}))}
 function resolveCatalogImage(x){
   if(x?.image_path){
