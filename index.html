@@ -361,7 +361,6 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   <button data-side="projects" onclick="showScreen('projects')">📁 <span>Projek Customer</span></button>
   <button data-side="catalog" onclick="showScreen('catalog')">▤ <span>Katalog Material</span></button>
   <button data-side="quote" onclick="showScreen('quote')">▦ <span>Pengiraan Anggaran</span></button>
-  <button data-side="projects" onclick="showScreen('projects')">👤 <span>Pelanggan</span></button>
   <button data-side="dashboard" onclick="showScreen('dashboard')">▣ <span>Laporan</span></button>
   <button data-side="home" onclick="showScreen('home')">⚙ <span>Tetapan</span></button>
   <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button>
@@ -687,7 +686,6 @@ function renderCustomerProjects(){
         return `<div class="project-item" style="border-left:5px solid ${status==='selesai'?'#087f45':status==='dalam_proses'?'#126bd6':'#b47b00'}">
           <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:start"><b>${esc(b.customer_name||'Customer')}</b><span class="cat-pill">${label}</span></div>
           <p>Jenis: ${esc(b.cabinet_type||'-')} · Material: ${esc(b.material||'-')}<br>Tarikh booking: ${esc(b.booking_date||'-')} · PIC: ${esc(getBookingAgentName(b))}<br>Telefon: ${esc(b.phone||'-')}<br>Jualan: <strong>${money(sale)}</strong> · Deposit: ${money(deposit)} · Baki: <strong>${money(balance)}</strong></p>
-          <button class="btn blue" onclick="showScreen('bookings');document.getElementById('bookingSearch').value=${JSON.stringify(String(b.customer_name||''))};renderWebsiteBookings()">Urus Booking</button>
         </div>`;
       }).join('')
     : '<div class="project-item">Belum ada booking disahkan. Tekan “Sahkan” di halaman Booking Baru untuk masukkan booking ke senarai projek.</div>';
