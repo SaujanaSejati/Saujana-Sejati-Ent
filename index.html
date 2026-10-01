@@ -657,7 +657,7 @@ function initNotificationAudio(){
   try{
     const AudioCtor=window.AudioContext||window.webkitAudioContext;
     if(!AudioCtor)return false;
-    audioCtx=audioCtx||new AudioCtor();
+    if(!audioCtx||audioCtx.state==='closed')audioCtx=new AudioCtor();
     return true;
   }catch(e){
     console.warn('Audio penggera tidak tersedia:',e);
@@ -665,20 +665,32 @@ function initNotificationAudio(){
   }
 }
 
+// Panggil daripada klik pengguna untuk membuka kunci audio browser.
+async function unlockNotificationAudio(){
+  if(!initNotificationAudio()||!audioCtx)return false;
+  try{
+    if(audioCtx.state!=='running')await audioCtx.resume();
+    return audioCtx.state==='running';
+  }catch(e){
+    console.warn('Audio resume gagal:',e);
+    return false;
+  }
+}
+
 async function playBookingSound(){
   try{
-    if(!initNotificationAudio()||!audioCtx)return false;
-    if(audioCtx.state==='suspended')await audioCtx.resume();
-    if(audioCtx.state!=='running')return false;
-    const now=audioCtx.currentTime;
+    if(!await unlockNotificationAudio())return false;
+    const ctx=audioCtx;
+    const now=ctx.currentTime;
+    // Bunyi empat nada pendek; jadualkan semuanya pada AudioContext yang sama.
     [0,0.22,0.44,0.66].forEach((delay,i)=>{
-      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-      o.type='sine'; o.frequency.value=[880,1046,1318,1046][i];
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime([880,1046,1318,1046][i],now+delay);
       g.gain.setValueAtTime(0.0001,now+delay);
-      g.gain.exponentialRampToValueAtTime(0.28,now+delay+0.025);
-      g.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.19);
-      o.connect(g);g.connect(audioCtx.destination);
-      o.start(now+delay);o.stop(now+delay+0.2);
+      g.gain.exponentialRampToValueAtTime(0.32,now+delay+0.025);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.22);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(now+delay);o.stop(now+delay+0.23);
     });
     return true;
   }catch(e){
@@ -690,14 +702,8 @@ async function playBookingSound(){
 async function enableNotifications(){
   const btn=document.getElementById('enableNotifBtn');
   // Audio mesti dibuka melalui sentuhan/klik pengguna sebelum browser benarkan bunyi automatik.
-  const audioReady=initNotificationAudio();
-  let soundReady=false;
-  if(audioReady&&audioCtx){
-    try{
-      if(audioCtx.state==='suspended')await audioCtx.resume();
-      soundReady=audioCtx.state==='running';
-    }catch(e){console.warn('Audio resume gagal:',e)}
-  }
+  // Resume dibuat terus daripada klik pengguna supaya browser membenarkan audio realtime.
+  const soundReady=await unlockNotificationAudio();
   let permission='unsupported';
   if('Notification' in window){
     try{
@@ -727,7 +733,14 @@ function showLiveNotification(b){
   const badge=document.getElementById('newBookingBadge');
   if(badge){const current=parseInt(badge.dataset.count||'0',10)+1;badge.dataset.count=String(current);badge.textContent=current+' BARU';badge.style.display='inline-block';}
   if(box){box.classList.add('show');setTimeout(()=>box.classList.remove('show'),7000);}
-  playBookingSound();
+  // Pantau keputusan audio supaya kegagalan resume tidak senyap tanpa petunjuk.
+  playBookingSound().then(ok=>{
+    if(!ok){
+      const rs=document.getElementById('realtimeStatus');
+      if(rs)rs.textContent='🟡 Booking masuk, tetapi audio disekat browser. Tekan 🔔 Aktifkan sekali lagi.';
+      console.warn('Bunyi booking tidak dimainkan; AudioContext:',audioCtx?.state||'tiada');
+    }
+  });
   if('Notification' in window && Notification.permission==='granted'){
     try{new Notification('🔔 Booking Baru Masuk!',{body:text,tag:String(b?.id||Date.now())})}catch(e){}
   }
