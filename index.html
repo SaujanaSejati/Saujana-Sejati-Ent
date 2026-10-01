@@ -1208,13 +1208,18 @@ function getEffectiveQuotation(id,bookingOverride=null){
  if(!Array.isArray(extras))extras=[];
  const bottom=structure?.bottom||{};
  const top=structure?.top||{};
- const item1={name:String(bottom.name||structure?.bottomName||b.cabinet_type||'Kabinet').trim(),measure:String(bottom.measure||structure?.bottomMeasure||b.measurement||'-').trim(),price:structure?Number(bottom.price??structure.bottomPrice??b.estimated_price??0):Number(b.estimated_price||0)};
- const item2={name:String(top.name||structure?.topName||'Kabinet Atas').trim(),measure:String(top.measure||structure?.topMeasure||'-').trim(),price:structure?Number(top.price??structure.topPrice??0):0};
- const additional=Number(b.nilai_tambahan||0),deposit=Number(b.deposit??b.deposit_amount??0);
+ // Sokong format lama dan baharu: jika struktur item tiada, guna nilai jualan dalam rekod booking.
+ const storedSale=Number(b.estimated_price)||0;
+ const bottomPrice=Number(bottom.price??structure?.bottomPrice??storedSale)||0;
+ const topPrice=Number(top.price??structure?.topPrice??0)||0;
+ const item1={name:String(bottom.name||structure?.bottomName||b.cabinet_type||'Kabinet').trim(),measure:String(bottom.measure||structure?.bottomMeasure||b.measurement||'-').trim(),price:bottomPrice};
+ const item2={name:String(top.name||structure?.topName||'Kabinet Atas').trim(),measure:String(top.measure||structure?.topMeasure||'-').trim(),price:topPrice};
+ const additional=Number(b.nilai_tambahan)||0,deposit=Number(b.deposit??b.deposit_amount)||0;
  const extrasClean=extras.map(x=>({name:String(x.name||'Item Tambahan').trim(),price:Number(x.price)||0})).filter(x=>x.name||x.price);
  const accessories=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
- const total=item1.price+item2.price+additional+extrasClean.reduce((s,x)=>s+x.price,0);
- return {b,item1,item2,additional,deposit,extras:extrasClean,accessories,total,balance:Math.max(0,total-deposit),structure};
+ const itemTotal=item1.price+item2.price;
+ const total=itemTotal+additional+extrasClean.reduce((s,x)=>s+x.price,0);
+ return {b,item1,item2,additional,deposit,extras:extrasClean,accessories,total,itemTotal,balance:Math.max(0,total-deposit),structure};
 }
 function quotationRowsHtml(q){
  let n=1,html=`<tr><td class="c">${n++}</td><td><b>${esc(q.item1.name)}</b><br>${esc(q.b.material||'-')} · Ukuran: ${esc(q.item1.measure)}</td><td class="right">${money(q.item1.price)}</td></tr>`;
@@ -1286,7 +1291,7 @@ async function showBookingDetail(id){
   const q=getEffectiveQuotation(id,b);
   if(!q)return;
   const acc=q.accessories.join(', ')||'-';
-  const jualan=q.item1.price+q.item2.price;
+  const jualan=q.itemTotal;
   const tambahan=q.additional;
   const deposit=q.deposit;
   const jumlah=q.total;
