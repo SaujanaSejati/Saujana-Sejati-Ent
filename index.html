@@ -1018,9 +1018,8 @@ function recalcEditQuote(){
  if(t)t.textContent=money(total);if(bal)bal.textContent=money(balance);
 }
 function editBookingQuotation(id){
-  if(window.currentUserRole==='agent'){alert('Akses terhad: Agent tidak dibenarkan mengedit quotation.');return;}
-
  const b=websiteBookings.find(x=>String(x.id)===String(id));if(!b)return;
+ if(window.currentUserRole==='agent'&&!canAgentEditBooking(b)){alert('Akses ditolak: Anda hanya boleh mengedit quotation untuk booking PIC anda sendiri.');return;}
  const extras=getQuoteExtras(id);
  const acc=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
  const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=Number(b.deposit??b.deposit_amount??0);
@@ -1228,10 +1227,9 @@ async function getDepositProofUrl(b){
  return null;
 }
 function printBookingQuote(id){
-  if(window.currentUserRole==='agent'){alert('Akses terhad: Cetakan quotation hanya untuk Admin.');return;}
-
  const q=getEffectiveQuotation(id); if(!q){alert('Booking tidak ditemui.');return;}
  const b=q.b;
+ if(window.currentUserRole==='agent'&&!canAgentEditBooking(b)){alert('Akses ditolak: Anda hanya boleh mencetak quotation untuk booking PIC anda sendiri.');return;}
  const quoteRows=quotationRowsHtml(q);
  const accRows=q.accessories.length?q.accessories.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${esc(x)}</td></tr>`).join(''):`<tr><td class="c">1</td><td>-</td></tr>`;
  const old=document.getElementById('__saujanaPrintRoot');if(old)old.remove();
@@ -1240,9 +1238,8 @@ function printBookingQuote(id){
  document.body.appendChild(root);
 }
 async function printBookingReceipt(id){
-  if(window.currentUserRole==='agent'){alert('Akses terhad: Cetakan resit hanya untuk Admin.');return;}
-
  const q=getEffectiveQuotation(id);if(!q){alert('Booking tidak ditemui.');return;}
+ if(window.currentUserRole==='agent'&&!canAgentEditBooking(q.b)){alert('Akses ditolak: Anda hanya boleh mencetak resit untuk booking PIC anda sendiri.');return;}
  const proofUrl=await getDepositProofUrl(q.b);
  const quoteRows=quotationRowsHtml(q);
  const accRows=q.accessories.length?q.accessories.map((x,i)=>`<tr><td class="c">${i+1}</td><td>${esc(x)}</td></tr>`).join(''):`<tr><td class="c">1</td><td>-</td></tr>`;
