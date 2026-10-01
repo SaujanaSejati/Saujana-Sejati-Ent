@@ -690,6 +690,15 @@ async function deleteCatalogItem(id){if(!confirm('Padam katalog ini?'))return;co
 function renderCustomerProjects(){
   const host=document.getElementById('projectList');
   if(!host)return;
+  const statusCounts=[
+    {key:'baru',label:'Baru',color:'#64748b'},
+    {key:'disahkan',label:'Disahkan',color:'#b47b00'},
+    {key:'dalam_proses',label:'Dalam Proses',color:'#126bd6'},
+    {key:'selesai',label:'Selesai',color:'#087f45'},
+    {key:'dibatalkan',label:'Dibatalkan',color:'#c62828'}
+  ].map(s=>({...s,count:websiteBookings.filter(b=>String(b.status||'baru').toLowerCase()===s.key).length}));
+  const statusTotal=statusCounts.reduce((sum,s)=>sum+s.count,0);
+  const statusGraph='<div class="panel" style="padding:16px;margin:12px 0 20px"><h3 style="margin:0 0 6px">📊 Ringkasan Status Booking</h3><div class="muted" style="margin-bottom:14px">Jumlah booking mengikut status · Jumlah rekod: '+statusTotal+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px">'+statusCounts.map(s=>'<div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px"><div style="display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:13px"><span>'+s.label+'</span><span>'+s.count+'</span></div><div style="height:9px;background:#edf0f4;border-radius:8px;margin-top:10px;overflow:hidden"><div style="height:100%;width:'+(statusTotal?Math.round(s.count/statusTotal*100):0)+'%;background:'+s.color+';border-radius:8px"></div></div><div class="muted" style="font-size:12px;margin-top:6px">'+(statusTotal?Math.round(s.count/statusTotal*100):0)+'% daripada booking</div></div>').join('')+'</div></div>';
   const quotes=JSON.parse(localStorage.getItem('saujana_projects_v4')||'[]');
   const quoteHtml=quotes.length
     ? quotes.map((p,i)=>`<div class="project-item"><b>${esc(p.name)}</b><p>Jenis: Quotation Admin<br>Tarikh: ${esc(p.date||'-')}<br>Jumlah: <strong>${esc(p.total)}</strong> · Deposit: ${money(+p.deposit||0)} · Baki: ${esc(p.balance)}</p><button class="btn red" onclick="deleteProject(${i})">Padam Quotation</button></div>`).join('')
@@ -709,7 +718,7 @@ function renderCustomerProjects(){
         </div>`;
       }).join('')
     : '<div class="project-item">Belum ada booking disahkan. Tekan “Sahkan” di halaman Booking Baru untuk masukkan booking ke senarai projek.</div>';
-  host.innerHTML='<h3 style="margin:18px 0 10px">📁 Projek Customer — Booking Disahkan</h3>'+bookingHtml+'<h3 style="margin:22px 0 10px">🧾 Quotation Admin</h3>'+quoteHtml;
+  host.innerHTML=statusGraph+'<h3 style="margin:18px 0 10px">📁 Projek Customer — Booking Disahkan</h3>'+bookingHtml+'<h3 style="margin:22px 0 10px">🧾 Quotation Admin</h3>'+quoteHtml;
 }
 
 async function deleteCustomerProjectBooking(id){
