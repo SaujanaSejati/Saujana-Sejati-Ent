@@ -1622,20 +1622,39 @@ function exportAnnualRecordsExcel(){
   const count=document.getElementById('annualCount')?.textContent||'0';
   const sales=document.getElementById('annualSales')?.textContent||'RM 0.00';
   const deposit=document.getElementById('annualDeposit')?.textContent||'RM 0.00';
-  const table=document.querySelector('#annualReportList table');
-  if(!table){alert('Tiada rekod untuk dieksport bagi pilihan ini.');return;}
+  const sourceTable=document.querySelector('#annualReportList table');
+  if(!sourceTable){alert('Tiada rekod untuk dieksport bagi pilihan ini.');return;}
   const safe=s=>String(s??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
-  const tableHtml=table.outerHTML
-    .replace(/style="[^"]*"/g,'')
-    .replace(/<th/g,'<th style="border:1px solid #999;background:#e9eef3;padding:6px;text-align:left"')
-    .replace(/<td/g,'<td style="border:1px solid #999;padding:6px"');
-  const html='<!doctype html><html><head><meta charset="utf-8"></head><body>'+
-    '<table><tr><th colspan="7">SAUJANA SEJATI ENTERPRISE</th></tr>'+
-    '<tr><td colspan="7">CUSTOM CABINET &amp; INTERIOR · 011-1323 2186</td></tr>'+
-    '<tr><th colspan="7">REKOD TAHUNAN '+safe(year)+'</th></tr>'+
-    '<tr><td colspan="7">Bulan: '+safe(monthLabel)+' | Tarikh eksport: '+safe(new Date().toLocaleDateString('ms-MY'))+'</td></tr>'+
-    '<tr><td>Jumlah Rekod</td><td>'+safe(count)+'</td><td>Jumlah Jualan</td><td>'+safe(sales)+'</td><td>Jumlah Deposit</td><td>'+safe(deposit)+'</td><td></td></tr></table>'+
-    tableHtml+'</body></html>';
+  const rows=Array.from(sourceTable.querySelectorAll('tr'));
+  const header=rows.shift();
+  const tableRows=rows.map((tr,i)=>'<tr class="'+(i%2?'alt':'')+'">'+Array.from(tr.children).map((td,j)=>{
+    const align=j>=4?' class="num"':'';
+    return '<td'+align+'>'+safe(td.textContent.trim())+'</td>';
+  }).join('')+'</tr>').join('');
+  const headers=Array.from(header.children).map(th=>'<th>'+safe(th.textContent.trim())+'</th>').join('');
+  const exportDate=new Date().toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'});
+  const html='<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>'+
+    'body{font-family:Arial,Helvetica,sans-serif;color:#202a35;font-size:10pt}'+
+    'table{border-collapse:collapse;width:100%}.brand{background:#172b4d;color:#fff;font-size:18pt;font-weight:bold;text-align:left;padding:18px 14px}'+
+    '.subtitle{background:#243f66;color:#eaf0f8;font-size:10pt;padding:8px 14px}'+
+    '.report-title{background:#f0f3f7;color:#172b4d;font-size:15pt;font-weight:bold;padding:14px;border-bottom:3px solid #d71920}'+
+    '.meta{color:#596579;padding:8px 4px;font-size:9pt}.summary-label{background:#e9eef5;color:#40516a;font-weight:bold;padding:10px;border:1px solid #d5dce6}'+
+    '.summary-value{background:#fff;color:#172b4d;font-weight:bold;font-size:13pt;padding:10px;border:1px solid #d5dce6}'+
+    '.spacer{height:12px}.data-head th{background:#243f66;color:#fff;font-weight:bold;padding:10px 8px;border:1px solid #1b3151;text-align:left}'+
+    'td{padding:8px;border:1px solid #d8dee8}tr.alt td{background:#f4f7fb}.num{text-align:right;white-space:nowrap}'+
+    '.foot{color:#667085;font-size:9pt;padding-top:12px;border:0}'+
+    '</style></head><body><table>'+
+    '<tr><td class="brand" colspan="7">SAUJANA SEJATI ENTERPRISE</td></tr>'+
+    '<tr><td class="subtitle" colspan="7">CUSTOM CABINET &amp; INTERIOR</td></tr>'+
+    '<tr><td class="report-title" colspan="7">LAPORAN REKOD TAHUNAN '+safe(year)+'</td></tr>'+
+    '<tr><td class="meta" colspan="7">Tempoh: '+safe(monthLabel)+' &nbsp; | &nbsp; Tarikh eksport: '+safe(exportDate)+'</td></tr>'+
+    '<tr><td class="spacer" colspan="7"></td></tr>'+
+    '<tr><td class="summary-label" colspan="2">JUMLAH REKOD</td><td class="summary-label" colspan="2">JUMLAH JUALAN</td><td class="summary-label" colspan="3">JUMLAH DEPOSIT</td></tr>'+
+    '<tr><td class="summary-value" colspan="2">'+safe(count)+'</td><td class="summary-value" colspan="2">'+safe(sales)+'</td><td class="summary-value" colspan="3">'+safe(deposit)+'</td></tr>'+
+    '<tr><td class="spacer" colspan="7"></td></tr>'+
+    '<tr class="data-head">'+headers+'</tr>'+tableRows+
+    '<tr><td class="foot" colspan="7">Dokumen dijana secara automatik daripada sistem rekod Saujana Sejati Ent.</td></tr>'+
+    '</table></body></html>';
   const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
