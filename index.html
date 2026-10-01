@@ -899,7 +899,7 @@ function editBookingQuotation(id){
  const b=websiteBookings.find(x=>String(x.id)===String(id));if(!b)return;
  const extras=getQuoteExtras(id);
  const acc=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
- const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=Number(b.deposit_amount??b.deposit??0);
+ const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=Number(b.deposit??b.deposit_amount??0);
  const savedStructure=(()=>{try{return JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){return null}})();
  const bottomPrice=Number(savedStructure?.bottomPrice ?? sale);
  const topPrice=Number(savedStructure?.topPrice ?? 0);
@@ -1543,14 +1543,14 @@ const sn=document.getElementById('sideNewBadge');if(sn){sn.textContent=newCount;
 const adminSales=a.reduce((s,p)=>s+(parseFloat(String(p.total).replace(/[^0-9.]/g,''))||0),0);
 const bookingSales=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0),0);
 const adminDeposit=a.reduce((s,p)=>s+(+p.deposit||0),0);
-const bookingDeposit=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.deposit_amount??b.deposit)||0),0);
+const bookingDeposit=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.deposit??b.deposit_amount)||0),0);
 document.getElementById('ssales').textContent=money(adminSales+bookingSales);
 document.getElementById('sdep').textContent=money(adminDeposit+bookingDeposit);
 const list=document.getElementById('dashboardProjectList');
 if(list){
  const rows=[];
  a.forEach(p=>{const total=parseFloat(String(p.total||'').replace(/[^0-9.]/g,''))||0;const dep=parseFloat(p.deposit)||0;rows.push({name:p.name||'Customer',meta:'Quotation Admin · '+(p.date||'-'),value:money(total),deposit:money(dep),balance:money(Math.max(0,total-dep)),status:'QUOTATION',cancelled:false})});
- websiteBookings.forEach(b=>{const raw=b.status||'baru';const st={baru:'BARU',disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI',dibatalkan:'DIBATALKAN'}[raw]||String(raw).toUpperCase();const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);const dep=parseFloat(b.deposit_amount??b.deposit)||0;rows.push({name:b.customer_name||'Customer',meta:(b.cabinet_type||'-')+' · '+(b.booking_date||'-')+' · '+st,value:money(sale),deposit:money(dep),balance:money(Math.max(0,sale-dep)),status:st,cancelled:raw==='dibatalkan'})});
+ websiteBookings.forEach(b=>{const raw=b.status||'baru';const st={baru:'BARU',disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI',dibatalkan:'DIBATALKAN'}[raw]||String(raw).toUpperCase();const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);const dep=parseFloat(b.deposit??b.deposit_amount)||0;rows.push({name:b.customer_name||'Customer',meta:(b.cabinet_type||'-')+' · '+(b.booking_date||'-')+' · '+st,value:money(sale),deposit:money(dep),balance:money(Math.max(0,sale-dep)),status:st,cancelled:raw==='dibatalkan'})});
  list.innerHTML=rows.length?rows.map(r=>`<div class="dash-project-row ${r.cancelled?'dash-cancelled':''}"><div class="dash-project-main"><div class="dash-project-name">${esc(r.name)}</div><div class="dash-project-meta">${esc(r.meta)}</div><div class="dash-project-finance">Jualan: <b>${esc(r.value)}</b> · Deposit: <b>${esc(r.deposit)}</b> · Baki: <b>${esc(r.balance)}</b></div></div><div class="dash-project-side"><div class="dash-project-value">${esc(r.value)}</div>${r.cancelled?'<label class="cancel-check"><input type="checkbox" checked disabled> Dibatalkan</label>':''}</div></div>`).join(''):'<div class="muted">Belum ada projek.</div>';
 }
 }
@@ -1593,7 +1593,7 @@ function renderAnnualRecords(){
     if(month!=='all' && recordDate.slice(5,7)!==month)return;
     const status=b.status||'baru';
     const total=(Number(b.estimated_price)||0)+(Number(b.nilai_tambahan)||0);
-    const deposit=Number(b.deposit_amount??b.deposit)||0;
+    const deposit=Number(b.deposit??b.deposit_amount)||0;
     const orderedType=String(b.cabinet_type||b.product_type||b.order_type||'').trim()||'Jenis tidak dinyatakan';
     records.push({name:b.customer_name||'Customer',date:b.booking_date||b.created_at||'-',kind:orderedType,status:status.toUpperCase(),total,deposit,cancelled:status==='dibatalkan'});
   });
