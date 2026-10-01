@@ -1594,7 +1594,8 @@ function renderAnnualRecords(){
     const status=b.status||'baru';
     const total=(Number(b.estimated_price)||0)+(Number(b.nilai_tambahan)||0);
     const deposit=Number(b.deposit_amount??b.deposit)||0;
-    records.push({name:b.customer_name||'Customer',date:b.booking_date||b.created_at||'-',kind:'Booking Customer',status:status.toUpperCase(),total,deposit,cancelled:status==='dibatalkan'});
+    const orderedType=String(b.cabinet_type||b.product_type||b.order_type||'').trim()||'Jenis tidak dinyatakan';
+    records.push({name:b.customer_name||'Customer',date:b.booking_date||b.created_at||'-',kind:orderedType,status:status.toUpperCase(),total,deposit,cancelled:status==='dibatalkan'});
   });
   localProjects.forEach(p=>{
     if(String(annualRecordDate(p))!==year)return;
@@ -1602,7 +1603,8 @@ function renderAnnualRecords(){
     if(month!=='all' && recordDate.slice(5,7)!==month)return;
     const total=Number(String(p.total||'').replace(/[^0-9.]/g,''))||0;
     const deposit=Number(p.deposit)||0;
-    records.push({name:p.name||'Customer',date:p.date||'-',kind:'Quotation Admin',status:'QUOTATION',total,deposit,cancelled:false});
+    const orderedType=String(p.cabinet_type||p.product_type||p.order_type||'').trim()||'Jenis tidak dinyatakan';
+    records.push({name:p.name||'Customer',date:p.date||'-',kind:orderedType,status:'QUOTATION',total,deposit,cancelled:false});
   });
   const valid=records.filter(x=>!x.cancelled);
   const totalSales=valid.reduce((s,x)=>s+x.total,0);
@@ -1610,10 +1612,14 @@ function renderAnnualRecords(){
   document.getElementById('annualCount').textContent=records.length;
   document.getElementById('annualSales').textContent=money(totalSales);
   document.getElementById('annualDeposit').textContent=money(totalDeposit);
+  const typeCounts={};
+  valid.forEach(x=>{const k=x.kind||'Jenis tidak dinyatakan';typeCounts[k]=(typeCounts[k]||0)+1});
+  const ranked=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
+  const maxCount=Math.max(1,...ranked.map(x=>x[1]));
+  const chart=ranked.length?'<div style="margin:14px 0 18px;padding:16px;border:1px solid #e0e5eb;border-radius:12px;background:#fff"><h3 style="margin:0 0 5px;font-size:17px">📊 Produk Paling Banyak Dipesan</h3><div style="color:#667085;font-size:12px;margin-bottom:14px">Berdasarkan jenis kabinet dalam rekod bagi pilihan tahun/bulan ini.</div>'+ranked.map(([name,n])=>'<div style="display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(80px,3fr) 42px;gap:10px;align-items:center;margin:10px 0"><div style="font-size:13px;font-weight:700;overflow-wrap:anywhere">'+esc(name)+'</div><div style="height:14px;background:#edf0f4;border-radius:20px;overflow:hidden"><div style="height:100%;width:'+(n/maxCount*100)+'%;background:#e50914;border-radius:20px"></div></div><div style="font-size:13px;font-weight:900;text-align:right">'+n+'</div></div>').join('')+'</div>':'';
   records.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  list.innerHTML=records.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr style="text-align:left;background:#f1f3f5"><th style="padding:10px">Tarikh Hantar Borang</th><th style="padding:10px">Pelanggan</th><th style="padding:10px">Jenis Rekod</th><th style="padding:10px">Status</th><th style="padding:10px;text-align:right">Jualan</th><th style="padding:10px;text-align:right">Deposit</th><th style="padding:10px;text-align:right">Baki</th></tr></thead><tbody>'+records.map(x=>'<tr style="border-bottom:1px solid #e2e5e9"><td style="padding:10px">'+esc(String(x.date).slice(0,10))+'</td><td style="padding:10px">'+esc(x.name)+'</td><td style="padding:10px">'+esc(x.kind)+'</td><td style="padding:10px">'+esc(x.status)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.total)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.deposit)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:Math.max(0,x.total-x.deposit))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="booking-empty">Tiada rekod untuk tahun '+esc(year)+'. Rekod baharu akan dipaparkan selepas data booking dimuatkan.</div>';
+  list.innerHTML=records.length?chart+'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr style="text-align:left;background:#f1f3f5"><th style="padding:10px">Tarikh Hantar Borang</th><th style="padding:10px">Pelanggan</th><th style="padding:10px">Produk Dipesan</th><th style="padding:10px">Status</th><th style="padding:10px;text-align:right">Jualan</th><th style="padding:10px;text-align:right">Deposit</th><th style="padding:10px;text-align:right">Baki</th></tr></thead><tbody>'+records.map(x=>'<tr style="border-bottom:1px solid #e2e5e9"><td style="padding:10px">'+esc(String(x.date).slice(0,10))+'</td><td style="padding:10px">'+esc(x.name)+'</td><td style="padding:10px">'+esc(x.kind)+'</td><td style="padding:10px">'+esc(x.status)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.total)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.deposit)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:Math.max(0,x.total-x.deposit))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="booking-empty">Tiada rekod untuk tahun '+esc(year)+'. Rekod baharu akan dipaparkan selepas data booking dimuatkan.</div>';
 }
-
 function exportAnnualRecordsExcel(){
   renderAnnualRecords();
   const year=document.getElementById('annualReportYear')?.value||String(new Date().getFullYear());
