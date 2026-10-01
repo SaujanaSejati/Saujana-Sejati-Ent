@@ -626,7 +626,7 @@ function previewCatalogImage(url,title){
   const old=document.getElementById('catalogPreviewModal');
   if(old)old.remove();
   const m=document.createElement('div'); m.id='catalogPreviewModal'; m.className='modal show';
-  m.innerHTML='<div class="modal-card" style="max-width:900px"><div class="modal-head"><h2>🖼️ '+esc(title||'Preview Gambar')+'</h2><button class="close" type="button">Tutup ✕</button></div><div style="padding:14px;text-align:center;background:#111"><img src="'+esc(url)+'" alt="" style="max-width:100%;max-height:75vh;object-fit:contain;border-radius:8px"></div></div>';
+  m.innerHTML='<div class="modal-card" style="max-width:1000px;width:96%;margin:3vh auto"><div class="modal-head"><h2>🖼️ '+esc(title||'Preview Gambar')+'</h2><button class="close" type="button">Tutup ✕</button></div><div style="padding:14px;text-align:center;background:#111"><img id="catalogPreviewImage" src="'+esc(url)+'" alt="'+esc(title||'Preview Gambar')+'" style="display:block;margin:auto;max-width:100%;max-height:82vh;object-fit:contain;border-radius:8px"></div></div>';
   m.querySelector('.close').onclick=()=>m.remove();
   m.addEventListener('click',e=>{if(e.target===m)m.remove()});
   document.body.appendChild(m);
@@ -661,7 +661,7 @@ function renderCatalog(filter){
      img.onerror=null;img.removeAttribute('src');img.alt='Gambar tidak tersedia';img.style='height:210px;object-fit:contain;padding:24px';imgWrap.style.background='#eceff1';
    };
    imgWrap.appendChild(img);
-   const preview=document.createElement('button'); preview.type='button'; preview.textContent='🔍 Preview'; preview.style='position:absolute;right:10px;bottom:10px;border:0;border-radius:8px;padding:8px 10px;background:#111;color:#fff;font-weight:900'; preview.onclick=()=>previewCatalogImage(imageUrl,x.name||x.category);
+   const preview=document.createElement('button'); preview.type='button'; preview.textContent='🔍 Preview'; preview.style='position:absolute;right:10px;bottom:10px;border:0;border-radius:8px;padding:8px 10px;background:#111;color:#fff;font-weight:900'; preview.onclick=()=>previewCatalogImage(img.currentSrc||img.src||imageUrl,x.name||x.category);
    imgWrap.appendChild(preview); article.appendChild(imgWrap);
    const ci=document.createElement('div'); ci.className='ci'; ci.style='padding:12px;display:block';
    ci.innerHTML='<span class="cat-pill">'+esc(x.category||'-')+'</span><h3>'+esc(x.name||x.category||'Produk katalog')+'</h3><div class="muted">'+esc(x.description||'')+'</div>';
