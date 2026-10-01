@@ -1784,12 +1784,12 @@ function printAnnualRecords(){
   win.document.open();
   win.document.write(`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Rekod Tahunan ${year} - Saujana Sejati Ent</title><style>
     *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#17202a;margin:24px;font-size:12px}
-    .letterhead{display:flex;align-items:center;gap:12px;padding:0 0 10px;margin-bottom:12px;border-bottom:3px solid #e50914}
-    .letterhead img{width:86px;height:58px;object-fit:contain;flex-shrink:0}
-    .company-name{font-size:20px;font-weight:900;letter-spacing:.2px;color:#171717;margin:0 0 3px}
-    .company-tagline{font-size:10px;font-weight:800;letter-spacing:1px;color:#333;margin:0 0 5px;text-transform:uppercase}
-    .company-address,.company-contact{font-size:10px;line-height:1.4;margin:2px 0;color:#171717}
-    .company-contact{font-weight:800}
+    .letterhead{display:flex;align-items:center;gap:0;padding:0;margin-bottom:12px;background:#17365d;border-bottom:4px solid #d71920;min-height:104px}
+    .letterhead img{width:112px;height:88px;object-fit:contain;flex-shrink:0;background:#fff;padding:8px;border-right:5px solid #d71920}
+    .letterhead-copy{padding:14px 18px;color:#fff}
+    .company-name{font-size:25px;font-weight:900;letter-spacing:.4px;color:#fff;margin:0 0 5px;text-transform:uppercase}
+    .company-tagline{font-size:12px;font-weight:800;letter-spacing:1.5px;color:#e1eaf5;margin:0;text-transform:uppercase}
+    .company-address,.company-contact{display:none}
     .report-heading{margin-left:auto;text-align:right;align-self:flex-start;font-size:11px}
     h1{font-size:20px;margin:0 0 5px} .sub{color:#555;margin-bottom:18px}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 20px}
