@@ -457,6 +457,12 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
     <div class="dash-stat"><span class="stat-ico">💵</span>Deposit<div class="n" id="sdep">RM 0.00</div><div class="muted">Jumlah deposit diterima</div></div>
   </div>
   <div class="dashboard-projects project-item"><h3>📋 Senarai Projek</h3><div id="dashboardProjectList">Memuatkan projek...</div></div>
+    <div class="project-item" style="margin-top:14px"><b>Workflow</b><p>LEAD → QUOTATION → DEPOSIT → PRODUCTION → INSTALLATION → COMPLETED</p></div>
+</div>
+</section>
+<section id="reports" class="screen">
+<div class="wrap">
+  <div class="section-title"><div><h2>Laporan Rekod</h2><div class="muted">Laporan jualan dan deposit mengikut tahun atau bulan, dengan pilihan eksport Excel dan PDF.</div></div></div>
   <div class="project-item" style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
       <div><h3 style="margin:0 0 5px">📅 Rekod Tahunan</h3><div class="muted">Lihat rekod tahunan atau tapis mengikut bulan, termasuk jualan, deposit dan baki.</div></div>
@@ -482,7 +488,6 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
       <div id="annualReportList"><div class="muted">Pilih tahun untuk melihat rekod.</div></div>
     </div>
   </div>
-  <div class="project-item" style="margin-top:14px"><b>Workflow</b><p>LEAD → QUOTATION → DEPOSIT → PRODUCTION → INSTALLATION → COMPLETED</p></div>
 </div>
 </section>
 
@@ -493,6 +498,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 <button id="navQuote" onclick="showScreen('quote')"><span class="navico">▤</span>Quotation</button>
 <button id="navProjects" onclick="showScreen('projects')"><span class="navico">▦</span>Projek</button>
 <button id="navDashboard" onclick="showScreen('dashboard')"><span class="navico">▥</span>Dashboard</button>
+<button id="navReports" onclick="showScreen('reports')"><span class="navico">▤</span>Laporan</button>
 <button id="navAgents" onclick="showScreen('agents')"><span class="navico">👥</span>Agent</button>
 </nav>
  
@@ -502,7 +508,7 @@ const SUPABASE_URL="https://wvxaiojnxwzcdrczbdup.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let websiteBookings=[];
-const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navProjects',dashboard:'navDashboard',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
+const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navProjects',dashboard:'navDashboard',reports:'navReports',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
   if(id==='agents'&&window.currentUserRole!=='admin'){
     id='projects';
