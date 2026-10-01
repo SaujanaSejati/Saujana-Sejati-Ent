@@ -1569,7 +1569,11 @@ function printAnnualRecords(){
   win.document.open();
   win.document.write(`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Rekod Tahunan ${year} - Saujana Sejati Ent</title><style>
     *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#17202a;margin:24px;font-size:12px}
-    h1{font-size:22px;margin:0 0 5px} .sub{color:#555;margin-bottom:18px}
+    .letterhead{display:flex;align-items:center;gap:16px;padding:0 0 14px;margin-bottom:14px;border-bottom:3px solid #1f6f43}
+    .letterhead img{width:86px;height:86px;object-fit:contain}
+    .company-name{font-size:24px;font-weight:800;letter-spacing:.3px;color:#1f6f43;margin:0 0 4px}
+    .company-tagline{font-size:12px;color:#555;margin:0 0 8px}
+    h1{font-size:20px;margin:0 0 5px} .sub{color:#555;margin-bottom:18px}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 20px}
     .stat{border:1px solid #cfd6dd;border-radius:8px;padding:12px}.label{color:#555;font-size:11px}.value{font-size:18px;font-weight:800;margin-top:6px}
     table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #cfd6dd;padding:8px;text-align:left}th{background:#eef1f4}td:nth-child(5),td:nth-child(6),td:nth-child(7),th:nth-child(5),th:nth-child(6),th:nth-child(7){text-align:right}
@@ -1578,7 +1582,10 @@ function printAnnualRecords(){
     @media print{body{margin:0}.printbar{display:none}tr{break-inside:avoid}thead{display:table-header-group}}
   </style></head><body>
   <div class="printbar"><button onclick="window.print()">🖨️ Cetak / Simpan PDF</button> <button onclick="window.close()">Tutup</button></div>
-  <h1>Saujana Sejati Ent — Rekod Tahunan</h1>
+  <div class="letterhead">
+    <img src="https://mrhairi90.github.io/Saujana-Sejati-Ent/logo-saujana-sejati.jpg" alt="Logo Saujana Sejati Ent" onerror="this.style.display='none'">
+    <div><div class="company-name">SAUJANA SEJATI ENT</div><p class="company-tagline">Custom Cabinet &amp; Interior</p><h1>REKOD TAHUNAN</h1></div>
+  </div>
   <div class="sub">Tahun: <b>${String(year).replace(/[&<>"]/g,'')}</b> · Dicetak pada: ${new Date().toLocaleDateString('ms-MY')}</div>
   <div class="stats"><div class="stat"><div class="label">Jumlah Rekod</div><div class="value">${count}</div></div><div class="stat"><div class="label">Jumlah Jualan</div><div class="value">${sales}</div></div><div class="stat"><div class="label">Jumlah Deposit</div><div class="value">${deposit}</div></div></div>
   ${table}
