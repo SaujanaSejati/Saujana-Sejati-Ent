@@ -705,11 +705,25 @@ function renderCustomerProjects(){
         return `<div class="project-item" style="border-left:5px solid ${status==='selesai'?'#087f45':status==='dalam_proses'?'#126bd6':'#b47b00'}">
           <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:start"><b>${esc(b.customer_name||'Customer')}</b><span class="cat-pill">${label}</span></div>
           <p>Jenis: ${esc(b.cabinet_type||'-')} · Material: ${esc(b.material||'-')}<br>Tarikh booking: ${esc(b.booking_date||'-')} · PIC: ${esc(getBookingAgentName(b))}<br>Telefon: ${esc(b.phone||'-')}<br>Jualan: <strong>${money(sale)}</strong> · Deposit: ${money(deposit)} · Baki: <strong>${money(balance)}</strong></p>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn red" type="button" onclick="deleteCustomerProjectBooking('${String(b.id).replace(/'/g, '&#39;')}')">🗑 Padam Projek</button></div>
         </div>`;
       }).join('')
     : '<div class="project-item">Belum ada booking disahkan. Tekan “Sahkan” di halaman Booking Baru untuk masukkan booking ke senarai projek.</div>';
   host.innerHTML='<h3 style="margin:18px 0 10px">📁 Projek Customer — Booking Disahkan</h3>'+bookingHtml+'<h3 style="margin:22px 0 10px">🧾 Quotation Admin</h3>'+quoteHtml;
 }
+
+async function deleteCustomerProjectBooking(id){
+  const booking=websiteBookings.find(b=>String(b.id)===String(id));
+  if(!booking){alert('Booking tidak dijumpai. Sila muat semula halaman.');return;}
+  if(String(booking.status||'')!=='dibatalkan'){
+    alert('Sila tekan “Batal” pada booking dahulu. Selepas status bertukar kepada Dibatalkan, barulah projek boleh dipadam.');
+    return;
+  }
+  if(!confirm('Padam projek/customer ini secara kekal?\n\nRekod booking akan dipadam daripada database dan tindakan ini tidak boleh dibuat semula.'))return;
+  await window.deleteBooking(id);
+  renderCustomerProjects();
+}
+
 async function renderData(){
   await loadWebsiteBookings();
   renderCustomerProjects();
