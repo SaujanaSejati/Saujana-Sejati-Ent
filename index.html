@@ -669,12 +669,35 @@ async function saveCatalogItem(){const name=document.getElementById('catName').v
 async function toggleCatalogItem(id,active){const r=await supabaseClient.from('catalog_items').update({active:!active}).eq('id',id);if(r.error){alert('Gagal ubah status: '+r.error.message);return}await loadCatalogAdmin()}
 async function deleteCatalogItem(id){if(!confirm('Padam katalog ini?'))return;const item=dynamicCatalog.find(x=>String(x.id)===String(id));const r=await supabaseClient.from('catalog_items').delete().eq('id',id);if(r.error){alert('Gagal padam: '+r.error.message);return}if(item?.image_path)await supabaseClient.storage.from('catalog').remove([item.image_path]);await loadCatalogAdmin()}
 
+function renderCustomerProjects(){
+  const host=document.getElementById('projectList');
+  if(!host)return;
+  const quotes=JSON.parse(localStorage.getItem('saujana_projects_v4')||'[]');
+  const quoteHtml=quotes.length
+    ? quotes.map((p,i)=>`<div class="project-item"><b>${esc(p.name)}</b><p>Jenis: Quotation Admin<br>Tarikh: ${esc(p.date||'-')}<br>Jumlah: <strong>${esc(p.total)}</strong> · Deposit: ${money(+p.deposit||0)} · Baki: ${esc(p.balance)}</p><button class="btn red" onclick="deleteProject(${i})">Padam Quotation</button></div>`).join('')
+    : '<div class="project-item">Belum ada quotation Admin disimpan.</div>';
+  const projects=websiteBookings.filter(b=>['disahkan','dalam_proses','selesai'].includes(String(b.status||'baru')));
+  const bookingHtml=projects.length
+    ? projects.map(b=>{
+        const status=String(b.status||'disahkan');
+        const label={disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI'}[status]||status.toUpperCase();
+        const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);
+        const deposit=parseFloat(b.deposit??b.deposit_amount)||0;
+        const balance=Math.max(0,sale-deposit);
+        return `<div class="project-item" style="border-left:5px solid ${status==='selesai'?'#087f45':status==='dalam_proses'?'#126bd6':'#b47b00'}">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:start"><b>${esc(b.customer_name||'Customer')}</b><span class="cat-pill">${label}</span></div>
+          <p>Jenis: ${esc(b.cabinet_type||'-')} · Material: ${esc(b.material||'-')}<br>Tarikh booking: ${esc(b.booking_date||'-')} · PIC: ${esc(getBookingAgentName(b))}<br>Telefon: ${esc(b.phone||'-')}<br>Jualan: <strong>${money(sale)}</strong> · Deposit: ${money(deposit)} · Baki: <strong>${money(balance)}</strong></p>
+          <button class="btn blue" onclick="showScreen('bookings');document.getElementById('bookingSearch').value=${JSON.stringify(String(b.customer_name||''))};renderWebsiteBookings()">Urus Booking</button>
+        </div>`;
+      }).join('')
+    : '<div class="project-item">Belum ada booking disahkan. Tekan “Sahkan” di halaman Booking Baru untuk masukkan booking ke senarai projek.</div>';
+  host.innerHTML='<h3 style="margin:18px 0 10px">📁 Projek Customer — Booking Disahkan</h3>'+bookingHtml+'<h3 style="margin:22px 0 10px">🧾 Quotation Admin</h3>'+quoteHtml;
+}
 async function renderData(){
-let a=JSON.parse(localStorage.getItem('saujana_projects_v4')||'[]');
-document.getElementById('projectList').innerHTML=a.length?a.map((p,i)=>`<div class="project-item"><b>${esc(p.name)}</b><p>Tarikh: ${esc(p.date||'-')}<br>Jumlah: <strong>${esc(p.total)}</strong> · Deposit: ${money(+p.deposit||0)} · Baki: ${esc(p.balance)}</p><button class="btn red" onclick="deleteProject(${i})">Padam</button></div>`).join(''):'<div class="project-item">Belum ada quotation Admin disimpan.</div>';
-await loadWebsiteBookings();
-await loadCatalogAdmin();
-refreshDashboardTotals();
+  await loadWebsiteBookings();
+  renderCustomerProjects();
+  await loadCatalogAdmin();
+  refreshDashboardTotals();
 }
 let realtimeChannel=null;
 let initialBookingsLoaded=false;
@@ -1514,6 +1537,7 @@ window.updateBookingStatus = async function(id,status){
     }
     b.status=status;
     renderWebsiteBookings();
+    if(typeof renderCustomerProjects==='function')renderCustomerProjects();
     if(typeof refreshDashboardTotals==='function')refreshDashboardTotals();
     alert('✅ Status berjaya ditukar kepada '+status.toUpperCase()+'.');
   }catch(error){
