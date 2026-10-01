@@ -467,6 +467,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
           <option value="all">Semua Bulan</option><option value="01">Januari</option><option value="02">Februari</option><option value="03">Mac</option><option value="04">April</option><option value="05">Mei</option><option value="06">Jun</option><option value="07">Julai</option><option value="08">Ogos</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Disember</option>
         </select>
         <button type="button" class="btn" style="background:#555" onclick="renderAnnualRecords()">↻ Muat Semula</button>
+        <button type="button" class="btn" style="background:#187a43;color:#fff" onclick="exportAnnualRecordsExcel()">📊 Export Excel</button>
         <button type="button" class="btn green" onclick="printAnnualRecords()">🖨️ Cetak / Simpan PDF</button>
       </div>
       <div class="dash-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
@@ -1611,6 +1612,36 @@ function renderAnnualRecords(){
   document.getElementById('annualDeposit').textContent=money(totalDeposit);
   records.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   list.innerHTML=records.length?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr style="text-align:left;background:#f1f3f5"><th style="padding:10px">Tarikh Hantar Borang</th><th style="padding:10px">Pelanggan</th><th style="padding:10px">Jenis Rekod</th><th style="padding:10px">Status</th><th style="padding:10px;text-align:right">Jualan</th><th style="padding:10px;text-align:right">Deposit</th><th style="padding:10px;text-align:right">Baki</th></tr></thead><tbody>'+records.map(x=>'<tr style="border-bottom:1px solid #e2e5e9"><td style="padding:10px">'+esc(String(x.date).slice(0,10))+'</td><td style="padding:10px">'+esc(x.name)+'</td><td style="padding:10px">'+esc(x.kind)+'</td><td style="padding:10px">'+esc(x.status)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.total)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.deposit)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:Math.max(0,x.total-x.deposit))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="booking-empty">Tiada rekod untuk tahun '+esc(year)+'. Rekod baharu akan dipaparkan selepas data booking dimuatkan.</div>';
+}
+
+function exportAnnualRecordsExcel(){
+  renderAnnualRecords();
+  const year=document.getElementById('annualReportYear')?.value||String(new Date().getFullYear());
+  const monthSelect=document.getElementById('annualReportMonth');
+  const monthLabel=monthSelect?.selectedOptions?.[0]?.textContent||'Semua Bulan';
+  const count=document.getElementById('annualCount')?.textContent||'0';
+  const sales=document.getElementById('annualSales')?.textContent||'RM 0.00';
+  const deposit=document.getElementById('annualDeposit')?.textContent||'RM 0.00';
+  const table=document.querySelector('#annualReportList table');
+  if(!table){alert('Tiada rekod untuk dieksport bagi pilihan ini.');return;}
+  const safe=s=>String(s??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const tableHtml=table.outerHTML
+    .replace(/style="[^"]*"/g,'')
+    .replace(/<th/g,'<th style="border:1px solid #999;background:#e9eef3;padding:6px;text-align:left"')
+    .replace(/<td/g,'<td style="border:1px solid #999;padding:6px"');
+  const html='<!doctype html><html><head><meta charset="utf-8"></head><body>'+
+    '<table><tr><th colspan="7">SAUJANA SEJATI ENTERPRISE</th></tr>'+
+    '<tr><td colspan="7">CUSTOM CABINET &amp; INTERIOR · 011-1323 2186</td></tr>'+
+    '<tr><th colspan="7">REKOD TAHUNAN '+safe(year)+'</th></tr>'+
+    '<tr><td colspan="7">Bulan: '+safe(monthLabel)+' | Tarikh eksport: '+safe(new Date().toLocaleDateString('ms-MY'))+'</td></tr>'+
+    '<tr><td>Jumlah Rekod</td><td>'+safe(count)+'</td><td>Jumlah Jualan</td><td>'+safe(sales)+'</td><td>Jumlah Deposit</td><td>'+safe(deposit)+'</td><td></td></tr></table>'+
+    tableHtml+'</body></html>';
+  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='Rekod_Saujana_Sejati_'+year+(monthSelect&&monthSelect.value!=='all'?'_'+monthSelect.value:'')+'.xls';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 function printAnnualRecords(){
