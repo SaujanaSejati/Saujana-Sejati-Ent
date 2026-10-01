@@ -677,6 +677,22 @@ async function unlockNotificationAudio(){
   }
 }
 
+// Browser kadangkala menggantung audio apabila tab kembali aktif.
+// Cuba sambung semula melalui peristiwa halaman/fokus yang dibenarkan browser.
+function resumeNotificationAudio(){
+  if(!audioCtx||audioCtx.state==='closed')return;
+  if(audioCtx.state!=='running'){
+    audioCtx.resume().catch(e=>console.warn('Audio resume automatik gagal:',e));
+  }
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)resumeNotificationAudio();
+});
+window.addEventListener('focus',resumeNotificationAudio);
+window.addEventListener('pageshow',resumeNotificationAudio);
+document.addEventListener('pointerdown',resumeNotificationAudio,{passive:true});
+document.addEventListener('keydown',resumeNotificationAudio);
+
 async function playBookingSound(){
   try{
     if(!await unlockNotificationAudio())return false;
@@ -733,12 +749,17 @@ function showLiveNotification(b){
   const badge=document.getElementById('newBookingBadge');
   if(badge){const current=parseInt(badge.dataset.count||'0',10)+1;badge.dataset.count=String(current);badge.textContent=current+' BARU';badge.style.display='inline-block';}
   if(box){box.classList.add('show');setTimeout(()=>box.classList.remove('show'),7000);}
-  // Pantau keputusan audio supaya kegagalan resume tidak senyap tanpa petunjuk.
+  // Cuba mainkan segera; jika audio sedang digantung, cuba sekali lagi selepas resume.
   playBookingSound().then(ok=>{
     if(!ok){
-      const rs=document.getElementById('realtimeStatus');
-      if(rs)rs.textContent='🟡 Booking masuk, tetapi audio disekat browser. Tekan 🔔 Aktifkan sekali lagi.';
-      console.warn('Bunyi booking tidak dimainkan; AudioContext:',audioCtx?.state||'tiada');
+      resumeNotificationAudio();
+      setTimeout(()=>playBookingSound().then(retryOk=>{
+        if(!retryOk){
+          const rs=document.getElementById('realtimeStatus');
+          if(rs)rs.textContent='🟡 Booking masuk tetapi bunyi disekat. Klik 🔔 Aktifkan, pastikan tab Admin aktif dan volume browser tidak mute.';
+          console.warn('Bunyi booking gagal selepas cubaan kedua; AudioContext:',audioCtx?.state||'tiada');
+        }
+      }),350);
     }
   });
   if('Notification' in window && Notification.permission==='granted'){
