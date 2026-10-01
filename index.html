@@ -227,6 +227,100 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   #agents #agentGrid .catalog-admin-actions{
     grid-template-columns:1fr 1fr!important;
   }
+/* AGENT MANAGER - DESKTOP CLEAN LAYOUT */
+
+#agents #agentManager{
+  width:100%;
+  padding:20px!important;
+  margin-top:16px;
+  border-radius:12px;
+  box-sizing:border-box;
+}
+
+#agents #agentManager h3{
+  margin:0 0 18px!important;
+  font-size:22px;
+}
+
+#agents #agentManager .client-fields{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:16px 20px!important;
+}
+
+#agents #agentManager .field{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:6px!important;
+}
+
+#agents #agentManager .field label{
+  font-size:13px;
+  font-weight:900;
+}
+
+#agents #agentManager .field input,
+#agents #agentManager .field select{
+  width:100%;
+  min-height:44px;
+  padding:10px 12px;
+  box-sizing:border-box;
+  border:1px solid #aeb8c1;
+  border-radius:7px;
+}
+
+#agents #agentManager>div:last-of-type{
+  display:grid!important;
+  grid-template-columns:160px 1fr!important;
+  gap:10px!important;
+  margin-top:20px!important;
+}
+
+#agents #agentManager>div:last-of-type .btn{
+  width:100%;
+  min-height:44px;
+}
+
+/* MOBILE */
+@media(max-width:900px){
+
+  #agents #agentManager{
+    width:100%;
+    padding:14px!important;
+  }
+
+  #agents #agentManager .client-fields{
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+
+  #agents #agentManager .field{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:5px;
+  }
+
+  #agents #agentManager .field input,
+  #agents #agentManager .field select{
+    width:100%;
+    min-height:44px;
+  }
+
+  #agents #agentManager>div:last-of-type{
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+
+}
+
+@media(max-width:560px){
+
+  #agents #agentManager>div:last-of-type{
+    grid-template-columns:1fr!important;
+  }
+
+}
 }
 </style>
 <style id="homepage-video-admin-css">
