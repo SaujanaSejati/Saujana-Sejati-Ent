@@ -2070,6 +2070,7 @@ async function adminLogout(){
   showLoginGate();
 }
 async function openAgentManager(item=null){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak. Hanya Admin boleh mengurus agent.');return;}
   if(!currentAuth){
     showLoginGate();
     return;
@@ -2097,7 +2098,7 @@ async function openAgentManager(item=null){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function closeAgentManager(){editingAgentId=null;document.getElementById('agentManager').style.display='none'}
-async function loadAgents(){if(!currentAuth)return;const {data,error}=await supabaseClient.from('agents').select('id,name,phone,slug,active,created_at').eq('active',true).order('created_at',{ascending:true});if(error){document.getElementById('agentGrid').innerHTML='<div class="project-item">❌ '+esc(error.message)+'</div>';return}renderAgents(data||[])}
+async function loadAgents(){if(!currentAuth)return;const {data,error}=await supabaseClient.from('agents').select('id,name,phone,slug,active,created_at').order('created_at',{ascending:true});if(error){document.getElementById('agentGrid').innerHTML='<div class="project-item">❌ '+esc(error.message)+'</div>';return}renderAgents(data||[])}
 function renderAgents(arr){
   const masterAdmins=[
     {id:'HAIRI001',name:'Hairi',phone:'011-1323 2186',slug:'hairi',active:true,role:'Admin',fullAccess:true,isMasterAdmin:true},
@@ -2106,7 +2107,8 @@ function renderAgents(arr){
   const existingSlugs=new Set((arr||[]).map(x=>String(x.slug||'').toLowerCase()));
   const merged=[...masterAdmins.filter(x=>!existingSlugs.has(x.slug)),...(arr||[])];
   const active=merged.filter(x=>x.isMasterAdmin===true || x.active===true);
-  const c=document.getElementById('agentCount');if(c)c.textContent=active.length+'/10 agent aktif';
+  const activeAgentCount=(arr||[]).filter(x=>x.active===true).length;
+  const c=document.getElementById('agentCount');if(c)c.textContent=activeAgentCount+'/10 agent aktif';
   const g=document.getElementById('agentGrid');
   if(!active.length){g.innerHTML='<div class="project-item">Belum ada agent. Tekan “Daftar Agent”.</div>';return}
   const base='https://SaujanaSejati.github.io/Saujana-Sejati-Customer/?agent=';
@@ -2142,6 +2144,7 @@ function renderAgents(arr){
 }
 function escAttr(s){return String(s??'').replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;')}
 async function saveAgent(){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak. Hanya Admin boleh menyimpan maklumat agent.');return;}
   if(!currentAuth){
     showLoginGate();
     return;
@@ -2239,7 +2242,7 @@ async function saveAgent(){
   closeAgentManager();
   await loadAgents();
 }
-async function deactivateAgent(id,active){if(!currentAuth)return;if(active&&!confirm('Nyahaktifkan agent ini? Rekod booking lama akan kekal.'))return;const {error}=await supabaseClient.from('agents').update({active:!active}).eq('id',id);if(error){alert('Gagal ubah status agent: '+error.message);return}await loadAgents()}
+async function deactivateAgent(id,active){if(window.currentUserRole!=='admin'){alert('Akses ditolak. Hanya Admin boleh mengubah status agent.');return;}if(!currentAuth)return;if(active&&!confirm('Nyahaktifkan agent ini? Rekod booking lama akan kekal.'))return;const {error}=await supabaseClient.from('agents').update({active:!active}).eq('id',id);if(error){alert('Gagal ubah status agent: '+error.message);return}await loadAgents()}
 async function copyAgentUrl(url){await navigator.clipboard.writeText(url);alert('URL agent telah disalin.')}
 function showAgentQR(url,name){let m=document.getElementById('agentQRModal');if(!m){m=document.createElement('div');m.id='agentQRModal';m.className='modal';m.innerHTML='<div class="modal-card" style="max-width:430px;text-align:center;padding:20px"><button class="close" style="float:right" onclick="this.closest(\'.modal\').classList.remove(\'show\')">Tutup</button><h2 id="qrTitle"></h2><img id="qrImg" style="width:280px;height:280px;object-fit:contain;margin:15px auto;display:block"><p id="qrUrl" style="word-break:break-all;font-size:12px;color:#68707b"></p></div>';document.body.appendChild(m)}document.getElementById('qrTitle').textContent='QR Agent — '+name;document.getElementById('qrImg').src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(url);document.getElementById('qrUrl').textContent=url;m.classList.add('show')}
 requireAdminSession();
