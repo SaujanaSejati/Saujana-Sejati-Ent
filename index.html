@@ -293,7 +293,8 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 <div class="wrap">
   <div class="section-title"><div><h2>Pengurusan Agent</h2><div class="muted">Maksimum 10 agent aktif. Hanya 2 Admin berautoriti boleh mengurus agent.</div></div><button class="btn red" onclick="openAgentManager()">＋ Daftar Agent</button></div>
  
-    <h3 style="margin-top:0">Daftar / Edit Agent</h3>
+ <div id="agentManager" class="panel" style="display:none">   
+ <h3 style="margin-top:0">Daftar / Edit Agent</h3>
    <div class="client-fields" style="grid-template-columns:1fr 1fr;gap:16px;">
       <div class="field"><label>ID :</label><input id="agentIdDisplay" placeholder="Contoh: AGENT003" readonly style="background:#f1f3f5"></div><div class="field"><label>Role :</label><input id="agentRoleDisplay" value="Agent" readonly style="background:#f1f3f5"></div><div class="field"><label>Nama :</label><input id="agentName" placeholder="Nama agent"></div>
       <div class="field"><label>No. WhatsApp :</label><input id="agentPhone" placeholder="01X-XXXXXXX"></div>
@@ -304,7 +305,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
    
    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" style="background:#666" onclick="closeAgentManager()">Batal</button><button class="btn red" onclick="saveAgent()">💾 Simpan Agent</button></div>
-    <div id="agentStatus" class="muted" style="margin-top:8px"></div>
+    </div> <div id="agentStatus" class="muted" style="margin-top:8px"></div>
   </div>
   <div id="agentGrid" class="catalog-grid"></div>
 </div>
