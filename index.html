@@ -1359,7 +1359,7 @@ const sn=document.getElementById('sideNewBadge');if(sn){sn.textContent=newCount;
 const adminSales=a.reduce((s,p)=>s+(parseFloat(String(p.total).replace(/[^0-9.]/g,''))||0),0);
 const bookingSales=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0),0);
 const adminDeposit=a.reduce((s,p)=>s+(+p.deposit||0),0);
-parseFloat(b.deposit_amount??b.deposit)||0
+const bookingDeposit=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.deposit_amount??b.deposit)||0),0);
 document.getElementById('ssales').textContent=money(adminSales+bookingSales);
 document.getElementById('sdep').textContent=money(adminDeposit+bookingDeposit);
 const list=document.getElementById('dashboardProjectList');
