@@ -13,6 +13,13 @@
 
 /* Soft Edge Rectangle effect untuk semua logo Saujana Sejati */
 img[src*="logo-saujana-sejati.jpg"],.logo,.footer-logo,.print-logo,.brand-logo{border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.22);filter:drop-shadow(0 1px 2px rgba(0,0,0,.12));}
+
+.admin-sidebar .side-group{font-size:10px;font-weight:900;letter-spacing:1.4px;color:#8f9baa;padding:13px 13px 3px;margin-top:5px;border-top:1px solid #ffffff12}
+.admin-sidebar .side-group:first-of-type{border-top:0;margin-top:0;padding-top:8px}
+.admin-sidebar button{transition:background .18s ease,transform .18s ease}
+.admin-sidebar button:hover{background:#ffffff18;transform:translateX(2px)}
+.admin-sidebar button.active{background:linear-gradient(90deg,#d71920aa,#ffffff12);box-shadow:inset 3px 0 0 #e5484d;border-left:0;padding-left:13px}
+.admin-sidebar .side-quote{justify-content:center;box-shadow:0 4px 12px #d7192038;padding:13px}
 </style><style>
 .booking-section{margin-top:14px;border:1px solid #d4d8dc;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 3px 12px #00000012}
 .booking-section-head{background:linear-gradient(90deg,#202428,#101214);color:#fff;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:18px;font-weight:900}
@@ -359,16 +366,22 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
     <b>Saujana Sejati Ent</b>
     <small>Admin Panel</small>
   </div>
+  <div class="side-group">UTAMA</div>
   <button data-side="dashboard" onclick="showScreen('dashboard')">🏠 <span>Dashboard</span></button>
+  <div class="side-group">URUSAN CUSTOMER</div>
   <button data-side="bookings" onclick="showScreen('bookings')">📋 <span>Booking Baru</span><span id="sideNewBadge" class="side-badge" style="display:none">0</span></button>
   <button data-side="projects" onclick="showScreen('projects')">📁 <span>Projek Customer</span></button>
+  <div class="side-group">KATALOG & JUALAN</div>
   <button data-side="catalog" onclick="showScreen('catalog')">▤ <span>Katalog Material</span></button>
   <button data-side="quote" onclick="showScreen('quote')">▦ <span>Pengiraan Anggaran</span></button>
-  <button data-side="reports" onclick="showScreen('reports')">▤ <span>Laporan</span></button>
+  <button class="side-quote" onclick="showScreen('quote')">＋ QUOTATION BARU</button>
+  <div class="side-group">LAPORAN</div>
+  <button data-side="reports" onclick="showScreen('reports')">📊 <span>Laporan</span></button>
+  <div class="side-group">LAMAN WEB</div>
   <button data-side="home" onclick="showScreen('home')">⌂ <span>Home</span></button>
   <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button>
+  <div class="side-group">PENGURUSAN</div>
   <button data-side="agents" onclick="showScreen('agents')">👥 <span>Pengurusan Agent</span></button>
-  <button class="side-quote" onclick="showScreen('quote')">＋ QUOTATION BARU</button>
   <div class="side-foot">“Rumah Lebih Selesa,<br>Hidup Lebih Bahagia”</div>
 </aside>
 <header class="top"><img class="logo" src="logo-saujana-sejati.jpg" alt="Saujana Sejati Ent"><div class="slogan">Reka Ruang<br>Hidup Lebih Sempurna<div class="tagline">KABINET IDAMAN, RUANG LEBIH BERMAKNA</div></div><div style="display:flex;gap:8px;align-items:center"><button class="wa" onclick="wa('Salam Saujana Sejati Ent, saya ingin bertanya tentang kabinet custom.')">WhatsApp<br><b>Chat di WhatsApp</b></button><button class="btn" style="background:#666;white-space:nowrap" onclick="adminLogout()">🚪 Log Keluar</button></div></header>
