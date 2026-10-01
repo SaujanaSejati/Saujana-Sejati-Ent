@@ -523,8 +523,15 @@ const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY
 let websiteBookings=[];
 const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navProjects',dashboard:'navDashboard',reports:'navReports',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
-  if(id==='agents'&&window.currentUserRole!=='admin'){
-    id='projects';
+  const restrictedAgentScreens=['agents','reports','videoHome'];
+  if(window.currentUserRole==='agent'){
+    ['reports','videoHome','agents'].forEach(key=>{
+      document.querySelectorAll('[data-side="'+key+'"],#navReports,#navAgents').forEach(el=>el.style.display='none');
+    });
+    if(restrictedAgentScreens.includes(id)){
+      alert('Akses terhad: Menu ini hanya boleh diurus oleh Admin.');
+      id='projects';
+    }
   }
 
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1747,6 +1754,7 @@ function renderAnnualRecords(){
   list.innerHTML=records.length?chart+'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr style="text-align:left;background:#f1f3f5"><th style="padding:10px">Tarikh Hantar Borang</th><th style="padding:10px">Pelanggan</th><th style="padding:10px">Produk Dipesan</th><th style="padding:10px">Status</th><th style="padding:10px;text-align:right">Jualan</th><th style="padding:10px;text-align:right">Deposit</th><th style="padding:10px;text-align:right">Baki</th></tr></thead><tbody>'+records.map(x=>'<tr style="border-bottom:1px solid #e2e5e9"><td style="padding:10px">'+esc(String(x.date).slice(0,10))+'</td><td style="padding:10px">'+esc(x.name)+'</td><td style="padding:10px">'+esc(x.kind)+'</td><td style="padding:10px">'+esc(x.status)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.total)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:x.deposit)+'</td><td style="padding:10px;text-align:right">'+money(x.cancelled?0:Math.max(0,x.total-x.deposit))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="booking-empty">Tiada rekod untuk tahun '+esc(year)+'. Rekod baharu akan dipaparkan selepas data booking dimuatkan.</div>';
 }
 function exportAnnualRecordsExcel(){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak: Laporan hanya boleh diakses oleh Admin.');return;}
   renderAnnualRecords();
   const year=document.getElementById('annualReportYear')?.value||String(new Date().getFullYear());
   const monthSelect=document.getElementById('annualReportMonth');
@@ -1797,6 +1805,7 @@ function exportAnnualRecordsExcel(){
 }
 
 function printAnnualRecords(){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak: Laporan hanya boleh diakses oleh Admin.');return;}
   const panel=document.getElementById('annualReportPanel');
   const year=document.getElementById('annualReportYear')?.value||new Date().getFullYear();
   if(!panel){alert('Laporan tahunan tidak dijumpai.');return;}
@@ -2274,6 +2283,7 @@ async function loadHomepageVideos(){
   }).join('');
 }
 async function uploadHomepageVideo(){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak: Hanya Admin boleh mengurus video Homepage.');return;}
   const title=document.getElementById('hpVideoTitle')?.value.trim();
   const file=document.getElementById('hpVideoFile')?.files?.[0];
   const desc=document.getElementById('hpVideoDesc')?.value.trim()||null;
@@ -2289,6 +2299,7 @@ async function uploadHomepageVideo(){
   await loadHomepageVideos();alert('✅ Video berjaya dimuat naik.');
 }
 async function activateHomepageVideo(id){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak: Hanya Admin boleh mengurus video Homepage.');return;}
   if(!confirm('Jadikan video ini sebagai video aktif di Home Page Customer?'))return;
   const {error:e1}=await supabaseClient.from('homepage_videos').update({is_active:false}).neq('id',id);
   if(e1){alert('❌ Gagal nyahaktifkan video lama.\n\n'+e1.message);return;}
@@ -2297,6 +2308,7 @@ async function activateHomepageVideo(id){
   await loadHomepageVideos();alert('✅ Video ini sekarang aktif di Home Page Customer.');
 }
 async function editHomepageVideo(id){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak: Hanya Admin boleh mengedit video Homepage.');return;}
   const {data,error}=await supabaseClient.from('homepage_videos').select('id,title,description').eq('id',id).maybeSingle();
   if(error||!data){alert('Video tidak dijumpai.');return;}
   const title=prompt('Tajuk video:',data.title);if(title===null)return;
@@ -2306,6 +2318,7 @@ async function editHomepageVideo(id){
   await loadHomepageVideos();alert('✅ Maklumat video dikemaskini.');
 }
 async function deleteHomepageVideo(id){
+  if(window.currentUserRole!=='admin'){alert('Akses ditolak: Hanya Admin boleh memadam video Homepage.');return;}
   const {data,error}=await supabaseClient.from('homepage_videos').select('storage_path,title').eq('id',id).maybeSingle();
   if(error||!data){alert('Video tidak dijumpai.');return;}
   if(!confirm('Padam video "'+data.title+'"?'))return;
