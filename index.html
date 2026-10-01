@@ -364,7 +364,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   <button data-side="projects" onclick="showScreen('projects')">📁 <span>Projek Customer</span></button>
   <button data-side="catalog" onclick="showScreen('catalog')">▤ <span>Katalog Material</span></button>
   <button data-side="quote" onclick="showScreen('quote')">▦ <span>Pengiraan Anggaran</span></button>
-  <button data-side="dashboard" onclick="showScreen('dashboard')">▣ <span>Laporan</span></button>
+  <button data-side="reports" onclick="showScreen('reports')">▤ <span>Laporan</span></button>
   <button data-side="home" onclick="showScreen('home')">⌂ <span>Home</span></button>
   <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button>
   <button data-side="agents" onclick="showScreen('agents')">👥 <span>Pengurusan Agent</span></button>
@@ -521,7 +521,8 @@ function showScreen(id){
   document.querySelectorAll('.admin-sidebar [data-side]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-side')===id));
   window.scrollTo({top:0,behavior:'smooth'});
 
-  if(id==='projects'||id==='dashboard')renderData();
+  if(id==='projects'||id==='dashboard'||id==='reports')renderData();
+  if(id==='reports')renderAnnualRecords();
   if(id==='bookings')loadWebsiteBookings();
   if(id==='catalog')renderCatalog('Semua');
   if(id==='agents')loadAgents();
