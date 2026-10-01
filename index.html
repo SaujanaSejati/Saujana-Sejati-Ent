@@ -1742,7 +1742,7 @@ function exportAnnualRecordsExcel(){
   const exportDate=new Date().toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'});
   const html='<!doctype html><html lang="ms"><head><meta charset="utf-8"><style>'+
     'body{font-family:Arial,Helvetica,sans-serif;color:#202a35;font-size:10pt}'+
-    '.brand-row td{background:#172b4d;color:#fff;padding:10px 14px;vertical-align:middle}.brand-logo{width:88px;height:58px;object-fit:contain;background:#fff}.brand-name{font-size:18pt;font-weight:bold}.brand-sub{font-size:10pt;color:#eaf0f8;padding-top:4px}'+
+    '.brand-row td{background:#172b4d;color:#fff;padding:8px 12px;vertical-align:middle}.brand-logo-cell{width:100px}.brand-logo{width:88px;height:58px;background:#fff}'+
     'table{border-collapse:collapse;width:100%}.brand{background:#172b4d;color:#fff;font-size:18pt;font-weight:bold;text-align:left;padding:18px 14px}'+
     '.subtitle{background:#243f66;color:#eaf0f8;font-size:10pt;padding:8px 14px}'+
     '.report-title{background:#f0f3f7;color:#172b4d;font-size:15pt;font-weight:bold;padding:14px;border-bottom:3px solid #d71920}'+
@@ -1752,7 +1752,7 @@ function exportAnnualRecordsExcel(){
     'td{padding:8px;border:1px solid #d8dee8}tr.alt td{background:#f4f7fb}.num{text-align:right;white-space:nowrap}'+
     '.foot{color:#667085;font-size:9pt;padding-top:12px;border:0}'+
     '</style></head><body><table>'+
-    '<tr class="brand-row"><td style="width:105px"><img class="brand-logo" src="https://saujanasejati.github.io/Saujana-Sejati-Ent/logo-saujana-sejati.jpg" alt="Logo Saujana Sejati"></td><td colspan="6"><div class="brand-name">SAUJANA SEJATI ENTERPRISE</div><div class="brand-sub">CUSTOM CABINET &amp; INTERIOR</div></td></tr>'+
+    '<tr class="brand-row"><td class="brand-logo-cell"><img class="brand-logo" width="88" height="58" src="https://saujanasejati.github.io/Saujana-Sejati-Ent/logo-saujana-sejati.jpg" alt="Logo Saujana Sejati"></td><td colspan="6" style="font-family:Arial,sans-serif;font-size:18pt;font-weight:bold;color:#ffffff">SAUJANA SEJATI ENTERPRISE<br><span style="font-size:10pt;font-weight:normal">CUSTOM CABINET &amp; INTERIOR</span></td></tr>'+
     '<tr><td class="report-title" colspan="7">LAPORAN REKOD TAHUNAN '+safe(year)+'</td></tr>'+
     '<tr><td class="meta" colspan="7">Tempoh: '+safe(monthLabel)+' &nbsp; | &nbsp; Tarikh eksport: '+safe(exportDate)+'</td></tr>'+
     '<tr><td class="spacer" colspan="7"></td></tr>'+
