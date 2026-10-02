@@ -1024,9 +1024,16 @@ function recalcEditQuote(){
  const t=modal.querySelector('#editQuoteTotal'), bal=modal.querySelector('#editQuoteBalance');
  if(t)t.textContent=money(total);if(bal)bal.textContent=money(balance);
 }
-function editBookingQuotation(id){
+async function editBookingQuotation(id){
  const b=websiteBookings.find(x=>String(x.id)===String(id));if(!b)return;
  if(window.currentUserRole==='agent'&&!canAgentEditBooking(b)){alert('Akses ditolak: Anda hanya boleh mengedit quotation untuk booking PIC anda sendiri.');return;}
+ let currentQuoteBookingItems=[];
+ try{
+  const {data,error}=await supabaseClient.from('booking_items').select('sort_order,item_type,material,measurement').eq('booking_id',id).order('sort_order',{ascending:true});
+  if(error)throw error;
+  currentQuoteBookingItems=data||[];
+ }catch(e){console.warn('Gagal memuat item untuk quotation:',e);alert('Item tempahan tambahan tidak dapat dimuatkan. Sila cuba semula.');return;}
+ window.currentQuoteBookingItems=currentQuoteBookingItems;
  const persistedMeta=readQuotationMeta(b.notes); const extras=persistedMeta.extras.length?persistedMeta.extras:getQuoteExtras(id);
  const acc=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
  const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=Number(b.deposit??b.deposit_amount??0);
@@ -1074,6 +1081,14 @@ function editBookingQuotation(id){
 
    <div style="border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:14px">
     <h3 style="margin:0 0 12px">🧰 ITEM QUOTATION</h3>
+    ${currentQuoteBookingItems.length>1? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      ${currentQuoteBookingItems.map((item,index)=>`<div style="border:1px solid #ddd;border-radius:10px;padding:14px">
+        <h4 style="margin:0 0 10px">ITEM ${index+1}: ${esc(item.item_type||'Item')}</h4>
+        <div style="font-size:13px;margin-bottom:8px">Material: ${esc(item.material||'-')}<br>Ukuran: ${esc(item.measurement||'-')}</div>
+        <label style="font-weight:800">Harga (RM)<input class="multi-item-quote-price" type="number" min="0" step="0.01" value="${index===0?bottomPrice:index===1?topPrice:0}" style="width:100%;padding:10px;margin-top:5px"></label>
+      </div>`).join('')}
+    </div>` : `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
      <div style="border:1px solid #ddd;border-radius:10px;padding:14px">
       <h4 style="margin:0 0 10px">🔻 ITEM 1</h4>
@@ -1087,7 +1102,7 @@ function editBookingQuotation(id){
       <label style="display:block;font-weight:800;margin-top:8px">Ukuran<input id="editTopMeasure" value="${esc(topMeasure)}" placeholder="Contoh: 10 kaki" style="width:100%;padding:10px;margin-top:5px"></label>
       <label style="display:block;font-weight:800;margin-top:8px">Harga (RM)<input id="editTopPrice" type="number" min="0" step="0.01" value="${topPrice}" style="width:100%;padding:10px;margin-top:5px"></label>
      </div>
-    </div>
+    </div>`}
     <div style="margin-top:12px;color:#666;font-size:13px">💡 Nama item dan harga boleh ditukar kepada apa sahaja yang diperlukan.</div>
    </div>
 
@@ -1134,6 +1149,7 @@ function editBookingQuotation(id){
  acc.forEach(x=>addBookingAccessoryRow(x));
  if(!acc.length)addBookingAccessoryRow('');
  ['editBottomPrice','editTopPrice','editAdditional','editDeposit'].forEach(id2=>document.getElementById(id2)?.addEventListener('input',recalcEditQuote));
+ modal.querySelectorAll('.multi-item-quote-price').forEach(input=>input.addEventListener('input',recalcEditQuote));
  recalcEditQuote();
 }
 function addBookingAccessoryRow(value=''){
@@ -1144,7 +1160,9 @@ function addBookingAccessoryRow(value=''){
 }
 function recalcEditQuote(){
  const modal=document.getElementById('quoteEditModal');if(!modal)return;
- const sale=Number(document.getElementById('editBottomPrice')?.value||0)+Number(document.getElementById('editTopPrice')?.value||0);
+ const sale=modal.querySelectorAll('.multi-item-quote-price').length
+  ? [...modal.querySelectorAll('.multi-item-quote-price')].reduce((sum,input)=>sum+(Number(input.value)||0),0)
+  : Number(document.getElementById('editBottomPrice')?.value||0)+Number(document.getElementById('editTopPrice')?.value||0);
  const add=Number(document.getElementById('editAdditional')?.value||0);
  const dep=Number(document.getElementById('editDeposit')?.value||0);
  const extras=[...modal.querySelectorAll('.qe-price')].reduce((s,x)=>s+(Number(x.value)||0),0);
@@ -1160,7 +1178,9 @@ async function saveStructuredQuotation(id){
  const additional=Number(document.getElementById('editAdditional')?.value||0);
  const deposit=Number(document.getElementById('editDeposit')?.value||0);
  if([bottomPrice,topPrice,additional,deposit].some(x=>!Number.isFinite(x)||x<0)){alert('Harga / deposit tidak sah.');return;}
- const total=bottomPrice+topPrice+additional+[...modal.querySelectorAll('.qe-price')].reduce((s,x)=>s+(Number(x.value)||0),0);
+ const multiPriceInputs=[...modal.querySelectorAll('.multi-item-quote-price')];
+ const itemSaleTotal=multiPriceInputs.length?multiPriceInputs.reduce((sum,x)=>sum+(Number(x.value)||0),0):bottomPrice+topPrice;
+ const total=itemSaleTotal+additional+[...modal.querySelectorAll('.qe-price')].reduce((s,x)=>s+(Number(x.value)||0),0);
  if(deposit>total && total>0){alert('Deposit tidak boleh lebih tinggi daripada jumlah quotation.');return;}
  const extras=[...modal.querySelectorAll('#quoteExtraRows .quote-extra-row')].map(r=>({name:r.querySelector('.qe-name')?.value.trim()||'',price:Number(r.querySelector('.qe-price')?.value||0)})).filter(x=>x.name||x.price);
  const accessories=[...modal.querySelectorAll('.booking-acc-name')].map(x=>x.value.trim()).filter(Boolean);
@@ -1194,7 +1214,7 @@ async function saveStructuredQuotation(id){
   booking_time:document.getElementById('editBookingTime')?.value||null,
   accessories,
   notes:notesWithQuotationMeta(document.getElementById('editNotes')?.value||'',structure,extras),
-  estimated_price:bottomPrice+topPrice,
+  estimated_price:itemSaleTotal,
   nilai_tambahan:additional,
   deposit:deposit
  };
