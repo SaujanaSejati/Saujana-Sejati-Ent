@@ -751,7 +751,7 @@ function renderCustomerProjects(){
         const status=String(b.status||'disahkan');
         const label={disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI'}[status]||status.toUpperCase();
         const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);
-        const deposit=effectiveDeposit;
+        const deposit=Number(b.deposit_amount)>0?Number(b.deposit_amount):(Number(b.deposit)>0?Number(b.deposit):Number(b.deposit_amount??b.deposit??0));
         const balance=Math.max(0,sale-deposit);
         return `<div class="project-item" style="border-left:5px solid ${status==='selesai'?'#087f45':status==='dalam_proses'?'#126bd6':'#b47b00'}">
           <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:start"><b>${esc(b.customer_name||'Customer')}</b><span class="cat-pill">${label}</span></div>
