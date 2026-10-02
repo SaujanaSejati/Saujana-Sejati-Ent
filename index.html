@@ -1552,7 +1552,8 @@ async function showBookingDetail(id){
             <b>${index+1}. ${esc(item.item_type||'Item')}</b><br>
             Material: ${esc(item.material||'-')}<br>
             Ukuran: ${esc(item.measurement||'-')}<br>
-            Warna: ${esc(item.color_name||b.color_name||'-')} ${item.color_code?'· Kod: '+esc(item.color_code):''}<br>
+            Warna: ${esc(item.color_name||b.color_name||'-')} ${item.color_code?'· Kod: '+esc(item.color_code):''} ${item.color_hex?'· HEX: '+esc(item.color_hex):''}<br>
+            ${item.color_hex&&/^#[0-9A-Fa-f]{6}$/.test(item.color_hex)?'<span style="display:inline-block;width:18px;height:18px;vertical-align:middle;border:1px solid #aaa;border-radius:4px;background:'+esc(item.color_hex)+'"></span>':''}<br>
             Aksesori: ${esc(Array.isArray(item.accessories)?item.accessories.join(', '):(item.accessories||'-'))}
           </div>`).join('')}
           ${bookingItemsLoadError?`<small style="color:#b91c1c">${esc(bookingItemsLoadError)}</small>`:''}
