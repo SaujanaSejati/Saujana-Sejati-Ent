@@ -1039,7 +1039,7 @@ async function editBookingQuotation(id){
  window.currentQuoteBookingItems=currentQuoteBookingItems;
  const persistedMeta=readQuotationMeta(b.notes); const extras=persistedMeta.extras.length?persistedMeta.extras:getQuoteExtras(id);
  const acc=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
- const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=Number(b.deposit??b.deposit_amount??0);
+ const sale=Number(b.estimated_price||0), add=Number(b.nilai_tambahan||0), dep=(Number(b.deposit_amount)>0?Number(b.deposit_amount):(Number(b.deposit)>0?Number(b.deposit):Number(b.deposit_amount??b.deposit??0)));
  const savedStructure=(()=>{try{return readQuotationMeta(b.notes).structure||JSON.parse(localStorage.getItem('saujana_quote_structure_'+id)||'null')}catch(e){return null}})();
  const bottomPrice=Number(savedStructure?.bottomPrice ?? sale);
  const topPrice=Number(savedStructure?.topPrice ?? 0);
@@ -1240,7 +1240,8 @@ async function saveStructuredQuotation(id){
   notes:notesWithQuotationMeta(document.getElementById('editNotes')?.value||'',structure,extras),
   estimated_price:itemSaleTotal,
   nilai_tambahan:additional,
-  deposit:deposit
+  deposit:deposit,
+  deposit_amount:deposit
  };
  const {error}=await supabaseClient.from('bookings').update(payload).eq('id',id);
  if(error){alert('Booking belum berjaya dikemas kini.\n\nRalat: '+(error.message||'Tidak diketahui'));return;}
