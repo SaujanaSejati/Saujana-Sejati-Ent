@@ -1051,6 +1051,27 @@ async function editBookingQuotation(id){
  modal.className='modal show';
  modal.id='quoteEditModal';
  modal.innerHTML=`
+ <style>
+  #quoteEditModal, #quoteEditModal *{box-sizing:border-box}
+  #quoteEditModal .modal-card{width:min(1050px,96vw);max-width:96vw!important}
+  #quoteEditModal input,#quoteEditModal textarea,#quoteEditModal select{max-width:100%;min-width:0}
+  #quoteEditModal .quote-extra-row{grid-template-columns:minmax(0,1fr) 150px 42px!important}
+  @media(max-width:640px){
+   #quoteEditModal .modal-card{width:100%;max-width:100%!important;max-height:94dvh!important;margin:0;border-radius:14px}
+   #quoteEditModal .modal-head{gap:10px;align-items:flex-start}
+   #quoteEditModal .modal-head h2{font-size:20px;line-height:1.25}
+   #quoteEditModal .modal-head .close{flex-shrink:0}
+   #quoteEditModal .modal-card>div[style*="padding:18px"]{padding:10px!important}
+   #quoteEditModal .modal-card>div[style*="padding:18px"]>div{padding:11px!important}
+   #quoteEditModal label{display:block;min-width:0;overflow-wrap:anywhere}
+   #quoteEditModal input,#quoteEditModal textarea,#quoteEditModal select{width:100%!important;min-width:0;font-size:16px}
+   #quoteEditModal .modal-card div[style*="display:grid"]{grid-template-columns:minmax(0,1fr)!important}
+   #quoteEditModal .modal-card div[style*="grid-column:1/-1"]{grid-column:auto!important}
+   #quoteEditModal .quote-extra-row{grid-template-columns:minmax(0,1fr) 100px 38px!important;gap:6px!important}
+   #quoteEditModal .quote-extra-row input{padding:9px!important}
+   #quoteEditModal .modal-card button.btn{max-width:100%}
+  }
+ </style>
  <div class="modal-card" style="max-width:1050px;max-height:92vh;overflow:auto">
   <div class="modal-head"><h2>✏️ Edit Semua Maklumat Booking & Quotation</h2><button type="button" class="close" onclick="this.closest('.modal')?.remove()">Tutup</button></div>
   <div style="padding:18px">
