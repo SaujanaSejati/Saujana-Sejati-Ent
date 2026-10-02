@@ -1300,6 +1300,22 @@ async function showBookingDetail(id){
     console.warn('Ralat ambil booking terkini:',e);
   }
 
+  // Muatkan semua item yang customer pilih dalam satu booking.
+  let customerBookingItems=[];
+  let bookingItemsLoadError='';
+  try{
+    const {data:itemRows,error:itemRowsError}=await supabaseClient
+      .from('booking_items')
+      .select('sort_order,item_type,material,measurement,color_name,color_hex,color_code,accessories,notes')
+      .eq('booking_id',id)
+      .order('sort_order',{ascending:true});
+    if(itemRowsError) throw itemRowsError;
+    customerBookingItems=itemRows||[];
+  }catch(e){
+    bookingItemsLoadError=e?.message||'Item tempahan tambahan tidak dapat dimuatkan.';
+    console.warn('Gagal muat item tempahan customer:',e);
+  }
+
   // Gunakan rekod terkini dari Supabase untuk semua maklumat dalam detail.
   const q=getEffectiveQuotation(id,b);
   if(!q)return;
@@ -1492,6 +1508,17 @@ async function showBookingDetail(id){
           </div>
         </div>
 
+        ${customerBookingItems.length?`<div class="v2-panel">
+          <h4>🧰 ITEM TEMPAHAN CUSTOMER (${customerBookingItems.length})</h4>
+          ${customerBookingItems.map((item,index)=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb">
+            <b>${index+1}. ${esc(item.item_type||'Item')}</b><br>
+            Material: ${esc(item.material||'-')}<br>
+            Ukuran: ${esc(item.measurement||'-')}<br>
+            Warna: ${esc(item.color_name||b.color_name||'-')} ${item.color_code?'· Kod: '+esc(item.color_code):''}<br>
+            Aksesori: ${esc(Array.isArray(item.accessories)?item.accessories.join(', '):(item.accessories||'-'))}
+          </div>`).join('')}
+          ${bookingItemsLoadError?`<small style="color:#b91c1c">${esc(bookingItemsLoadError)}</small>`:''}
+        </div>`:''}
         <div class="v2-panel">
           <h4>🧰 ITEM QUOTATION</h4>
           <p><b>Item 1:</b> ${esc(q.item1.name)}<br>Ukuran: ${esc(q.item1.measure)}<br>Harga: <span class="v2-price">${money(q.item1.price)}</span></p>
