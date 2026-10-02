@@ -751,7 +751,7 @@ function renderCustomerProjects(){
         const status=String(b.status||'disahkan');
         const label={disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI'}[status]||status.toUpperCase();
         const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);
-        const deposit=parseFloat(b.deposit??b.deposit_amount)||0;
+        const deposit=(parseFloat(b.deposit)>0?parseFloat(b.deposit):(parseFloat(b.deposit_amount)||0));
         const balance=Math.max(0,sale-deposit);
         return `<div class="project-item" style="border-left:5px solid ${status==='selesai'?'#087f45':status==='dalam_proses'?'#126bd6':'#b47b00'}">
           <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:start"><b>${esc(b.customer_name||'Customer')}</b><span class="cat-pill">${label}</span></div>
@@ -1286,7 +1286,7 @@ function getEffectiveQuotation(id,bookingOverride=null){
  const multiItems=Array.isArray(structure?.items)?structure.items.map(x=>({name:String(x.name||'Item').trim(),measure:String(x.measure||'-').trim(),material:String(x.material||b.material||'-').trim(),price:Number(x.price)||0})):null;
  const quoteItems=multiItems?.length?multiItems:legacyItems;
  const item1=quoteItems[0]||legacyItems[0], item2=quoteItems[1]||legacyItems[1];
- const additional=Number(b.nilai_tambahan)||0,deposit=Number(b.deposit??b.deposit_amount)||0;
+ const additional=Number(b.nilai_tambahan)||0,deposit=(Number(b.deposit)>0?Number(b.deposit):(Number(b.deposit_amount)||0));
  const extrasClean=extras.map(x=>({name:String(x.name||'Item Tambahan').trim(),price:Number(x.price)||0})).filter(x=>x.name||x.price);
  const accessories=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
  const itemTotal=quoteItems.reduce((sum,item)=>sum+(Number(item.price)||0),0);
@@ -1785,14 +1785,14 @@ const sn=document.getElementById('sideNewBadge');if(sn){sn.textContent=newCount;
 const adminSales=a.reduce((s,p)=>s+(parseFloat(String(p.total).replace(/[^0-9.]/g,''))||0),0);
 const bookingSales=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0),0);
 const adminDeposit=a.reduce((s,p)=>s+(+p.deposit||0),0);
-const bookingDeposit=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+(parseFloat(b.deposit??b.deposit_amount)||0),0);
+const bookingDeposit=websiteBookings.filter(b=>(b.status||'baru')!=='dibatalkan').reduce((s,b)=>s+((parseFloat(b.deposit)>0?parseFloat(b.deposit):(parseFloat(b.deposit_amount)||0))),0);
 document.getElementById('ssales').textContent=money(adminSales+bookingSales);
 document.getElementById('sdep').textContent=money(adminDeposit+bookingDeposit);
 const list=document.getElementById('dashboardProjectList');
 if(list){
  const rows=[];
  a.forEach(p=>{const total=parseFloat(String(p.total||'').replace(/[^0-9.]/g,''))||0;const dep=parseFloat(p.deposit)||0;rows.push({name:p.name||'Customer',meta:'Quotation Admin · '+(p.date||'-'),value:money(total),deposit:money(dep),balance:money(Math.max(0,total-dep)),status:'QUOTATION',cancelled:false})});
- websiteBookings.forEach(b=>{const raw=b.status||'baru';const st={baru:'BARU',disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI',dibatalkan:'DIBATALKAN'}[raw]||String(raw).toUpperCase();const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);const dep=parseFloat(b.deposit??b.deposit_amount)||0;rows.push({name:b.customer_name||'Customer',meta:(b.cabinet_type||'-')+' · '+(formatDateDMY(b.booking_date))+' · '+st,value:money(sale),deposit:money(dep),balance:money(Math.max(0,sale-dep)),status:st,cancelled:raw==='dibatalkan'})});
+ websiteBookings.forEach(b=>{const raw=b.status||'baru';const st={baru:'BARU',disahkan:'DISAHKAN',dalam_proses:'DALAM PROSES',selesai:'SELESAI',dibatalkan:'DIBATALKAN'}[raw]||String(raw).toUpperCase();const sale=(parseFloat(b.estimated_price)||0)+(parseFloat(b.nilai_tambahan)||0);const dep=(parseFloat(b.deposit)>0?parseFloat(b.deposit):(parseFloat(b.deposit_amount)||0));rows.push({name:b.customer_name||'Customer',meta:(b.cabinet_type||'-')+' · '+(formatDateDMY(b.booking_date))+' · '+st,value:money(sale),deposit:money(dep),balance:money(Math.max(0,sale-dep)),status:st,cancelled:raw==='dibatalkan'})});
  list.innerHTML=rows.length?rows.map(r=>`<div class="dash-project-row ${r.cancelled?'dash-cancelled':''}"><div class="dash-project-main"><div class="dash-project-name">${esc(r.name)}</div><div class="dash-project-meta">${esc(r.meta)}</div><div class="dash-project-finance">Jualan: <b>${esc(r.value)}</b> · Deposit: <b>${esc(r.deposit)}</b> · Baki: <b>${esc(r.balance)}</b></div></div><div class="dash-project-side"><div class="dash-project-value">${esc(r.value)}</div>${r.cancelled?'<label class="cancel-check"><input type="checkbox" checked disabled> Dibatalkan</label>':''}</div></div>`).join(''):'<div class="muted">Belum ada projek.</div>';
 }
 }
@@ -1835,7 +1835,7 @@ function renderAnnualRecords(){
     if(month!=='all' && recordDate.slice(5,7)!==month)return;
     const status=b.status||'baru';
     const total=(Number(b.estimated_price)||0)+(Number(b.nilai_tambahan)||0);
-    const deposit=Number(b.deposit??b.deposit_amount)||0;
+    const deposit=(Number(b.deposit)>0?Number(b.deposit):(Number(b.deposit_amount)||0));
     const orderedType=String(b.cabinet_type||b.product_type||b.order_type||'').trim()||'Jenis tidak dinyatakan';
     records.push({name:b.customer_name||'Customer',date:b.booking_date||b.created_at||'-',kind:orderedType,status:status.toUpperCase(),total,deposit,cancelled:status==='dibatalkan'});
   });
