@@ -2136,10 +2136,13 @@ function renderAgents(arr){
   const c=document.getElementById('agentCount');if(c)c.textContent=activeAgentCount+'/10 agent aktif';
   const g=document.getElementById('agentGrid');
   if(!active.length){g.innerHTML='<div class="project-item">Belum ada agent. Tekan “Daftar Agent”.</div>';return}
-  const base='https://SaujanaSejati.github.io/Saujana-Sejati-Ent/';
+  const adminBase='https://saujanasejati.github.io/Saujana-Sejati-Customer/admin/';
+  const customerBase='https://saujanasejati.github.io/Saujana-Sejati-Customer/';
   g.innerHTML=active.map(a=>{
     const slug=encodeURIComponent(String(a.slug||'').toLowerCase().trim());
-    const url=base+'?agent='+slug;
+    const url=a.isMasterAdmin
+      ? adminBase+slug.charAt(0).toUpperCase()+slug.slice(1)+'/'
+      : customerBase+'agent/'+slug;
     if(a.isMasterAdmin){
       return `<article class="catalog-admin-card"><div class="ci">
         <span class="cat-pill" style="background:#e9eef8;color:#126bd6">ADMIN • FULL ACCESS</span>
@@ -2179,7 +2182,11 @@ async function editMasterAdmin(id,currentName,currentPhone){
   if(phone===null)return;
   const cleanPhone=phone.trim();
   if(!cleanPhone){alert('Nombor telefon tidak boleh kosong.');return;}
-  const {error}=await supabaseClient.from('admin_profiles').update({name:cleanName,phone:cleanPhone}).eq('id',id);
+  const {error}=await supabaseClient.rpc('update_admin_contact',{
+    p_admin_id:id,
+    p_name:cleanName,
+    p_phone:cleanPhone
+  });
   if(error){alert('Gagal kemas kini admin: '+error.message);return;}
   alert('Maklumat admin berjaya dikemas kini.');
   await loadAgents();
