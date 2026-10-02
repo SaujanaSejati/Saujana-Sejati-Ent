@@ -2126,8 +2126,8 @@ function closeAgentManager(){editingAgentId=null;document.getElementById('agentM
 async function loadAgents(){if(!currentAuth)return;const {data,error}=await supabaseClient.from('agents').select('id,name,phone,slug,active,created_at').order('created_at',{ascending:true});if(error){document.getElementById('agentGrid').innerHTML='<div class="project-item">❌ '+esc(error.message)+'</div>';return}renderAgents(data||[])}
 function renderAgents(arr){
   const masterAdmins=[
-    {id:'HAIRI001',name:'Hairi',phone:'011-1323 2186',slug:'hairi',active:true,role:'Admin',fullAccess:true,isMasterAdmin:true},
-    {id:'AMIRUL002',name:'Amirul',phone:'019-456 5165',slug:'amirul',active:true,role:'Admin',fullAccess:true,isMasterAdmin:true}
+    {id:'a960389c-1d21-4f0d-877d-c668fc5ac4f8',name:'Hairi',phone:'011-1323 2186',slug:'hairi',active:true,role:'Admin',fullAccess:true,isMasterAdmin:true},
+    {id:'13c9d29d-1e18-4ed4-af4c-a6aeb38ab95b',name:'Amirul',phone:'019-456 5165',slug:'amirul',active:true,role:'Admin',fullAccess:true,isMasterAdmin:true}
   ];
   const existingSlugs=new Set((arr||[]).map(x=>String(x.slug||'').toLowerCase()));
   const merged=[...masterAdmins.filter(x=>!existingSlugs.has(x.slug)),...(arr||[])];
@@ -2138,7 +2138,8 @@ function renderAgents(arr){
   if(!active.length){g.innerHTML='<div class="project-item">Belum ada agent. Tekan “Daftar Agent”.</div>';return}
   const base='https://SaujanaSejati.github.io/Saujana-Sejati-Ent/';
   g.innerHTML=active.map(a=>{
-    const url=base+encodeURIComponent(String(a.slug||'').toLowerCase().trim())+'/agent';
+    const slug=encodeURIComponent(String(a.slug||'').toLowerCase().trim());
+    const url=base+'?agent='+slug;
     if(a.isMasterAdmin){
       return `<article class="catalog-admin-card"><div class="ci">
         <span class="cat-pill" style="background:#e9eef8;color:#126bd6">ADMIN • FULL ACCESS</span>
@@ -2148,6 +2149,7 @@ function renderAgents(arr){
         <div class="muted">WhatsApp: ${esc(a.phone||'-')}</div>
         <div class="muted" style="word-break:break-all;margin-top:5px">${esc(url)}</div>
         <div class="catalog-admin-actions">
+          <button style="background:#e9eef8;color:#126bd6" onclick="editMasterAdmin('${escAttr(a.id)}','${escAttr(a.name)}','${escAttr(a.phone||'')}')">✏️ Edit Admin</button>
           <button style="background:#eef8f1;color:#087f45" onclick="copyAgentUrl('${escAttr(url)}')">🔗 Salin URL Customer</button>
           <button style="background:#fff0e0;color:#8b5c00" onclick="showAgentQR('${escAttr(url)}','${escAttr(a.name)}')">▣ QR</button>
         </div>
@@ -2166,6 +2168,21 @@ function renderAgents(arr){
       </div>
     </div></article>`;
   }).join('');
+}
+async function editMasterAdmin(id,currentName,currentPhone){
+  if(window.currentUserRole!=='admin'||!currentAuth){alert('Akses ditolak. Sila log masuk sebagai Admin.');return;}
+  const name=prompt('Nama admin:',currentName);
+  if(name===null)return;
+  const cleanName=name.trim();
+  if(!cleanName){alert('Nama tidak boleh kosong.');return;}
+  const phone=prompt('Nombor telefon admin:',currentPhone);
+  if(phone===null)return;
+  const cleanPhone=phone.trim();
+  if(!cleanPhone){alert('Nombor telefon tidak boleh kosong.');return;}
+  const {error}=await supabaseClient.from('admin_profiles').update({name:cleanName,phone:cleanPhone}).eq('id',id);
+  if(error){alert('Gagal kemas kini admin: '+error.message);return;}
+  alert('Maklumat admin berjaya dikemas kini.');
+  await loadAgents();
 }
 function escAttr(s){return String(s??'').replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;')}
 async function saveAgent(){
