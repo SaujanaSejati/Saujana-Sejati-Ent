@@ -105,7 +105,9 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 @media(max-width:760px){
  .admin-sidebar{display:none!important}.top{left:0;height:64px;padding:5px 12px}.top .logo{width:105px;height:52px}
  main{margin-left:0;padding-top:64px}.wrap{padding:13px 10px}.dash-grid{grid-template-columns:1fr 1fr}.v2-detail-grid{grid-template-columns:1fr}
- nav{display:grid}
+ nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-bottom:env(safe-area-inset-bottom);max-height:42vh;overflow-y:auto}
+ nav button{min-width:0;padding:8px 2px 10px;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+ nav .navico{font-size:19px;margin-bottom:3px}
 }
 @media(min-width:761px){
  .admin-sidebar{display:block!important}
@@ -507,6 +509,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 </main><footer><img class="footer-logo" src="logo-saujana-sejati.jpg"><p>“Rumah Lebih Selesa, Hidup Lebih Bahagia”</p></footer>
 <nav>
 <button id="navHome" class="active" onclick="showScreen('home')"><span class="navico">⌂</span>Home</button>
+<button id="navBookings" onclick="showScreen('bookings')"><span class="navico">📋</span>Booking Baru</button>
 <button id="navCatalog" onclick="showScreen('catalog')"><span class="navico">▧</span>Katalog</button>
 <button id="navQuote" onclick="showScreen('quote')"><span class="navico">▤</span>Quotation</button>
 <button id="navProjects" onclick="showScreen('projects')"><span class="navico">▦</span>Projek</button>
@@ -521,7 +524,7 @@ const SUPABASE_URL="https://wvxaiojnxwzcdrczbdup.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let websiteBookings=[];
-const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navProjects',dashboard:'navDashboard',reports:'navReports',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
+const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
   const restrictedAgentScreens=['agents','reports','videoHome'];
   if(window.currentUserRole==='agent'){
