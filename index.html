@@ -2136,9 +2136,9 @@ function renderAgents(arr){
   const c=document.getElementById('agentCount');if(c)c.textContent=activeAgentCount+'/10 agent aktif';
   const g=document.getElementById('agentGrid');
   if(!active.length){g.innerHTML='<div class="project-item">Belum ada agent. Tekan “Daftar Agent”.</div>';return}
-  const base='https://SaujanaSejati.github.io/Saujana-Sejati-Customer/?agent=';
+  const base='https://SaujanaSejati.github.io/Saujana-Sejati-Customer/';
   g.innerHTML=active.map(a=>{
-    const url=base+encodeURIComponent(a.slug);
+    const url=base+encodeURIComponent(String(a.slug||'').toLowerCase().trim())+'/agent';
     if(a.isMasterAdmin){
       return `<article class="catalog-admin-card"><div class="ci">
         <span class="cat-pill" style="background:#e9eef8;color:#126bd6">ADMIN • FULL ACCESS</span>
