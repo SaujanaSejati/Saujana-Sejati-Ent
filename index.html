@@ -1029,7 +1029,7 @@ async function editBookingQuotation(id){
  if(window.currentUserRole==='agent'&&!canAgentEditBooking(b)){alert('Akses ditolak: Anda hanya boleh mengedit quotation untuk booking PIC anda sendiri.');return;}
  let currentQuoteBookingItems=[];
  try{
-  const {data,error}=await supabaseClient.from('booking_items').select('sort_order,item_type,material,measurement').eq('booking_id',id).order('sort_order',{ascending:true});
+  const {data,error}=await supabaseClient.from('booking_items').select('sort_order,item_type,material,measurement,color_name,color_hex,color_code').eq('booking_id',id).order('sort_order',{ascending:true});
   if(error)throw error;
   currentQuoteBookingItems=data||[];
  }catch(e){console.warn('Gagal memuat item untuk quotation:',e);alert('Item tempahan tambahan tidak dapat dimuatkan. Sila cuba semula.');return;}
@@ -1085,7 +1085,7 @@ async function editBookingQuotation(id){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       ${currentQuoteBookingItems.map((item,index)=>`<div style="border:1px solid #ddd;border-radius:10px;padding:14px">
         <h4 style="margin:0 0 10px">ITEM ${index+1}: ${esc(item.item_type||'Item')}</h4>
-        <div style="font-size:13px;margin-bottom:8px">Material: ${esc(item.material||'-')}<br>Ukuran: ${esc(item.measurement||'-')}</div>
+        <div style="font-size:13px;margin-bottom:8px">Material: ${esc(item.material||'-')}<br>Ukuran: ${esc(item.measurement||'-')}<br>Warna: ${esc(item.color_name||b.color_name||'-')} · Kod: ${esc(item.color_code||'-')}<br><span style="display:inline-block;width:16px;height:16px;vertical-align:middle;border:1px solid #aaa;border-radius:3px;background:${/^#[0-9A-Fa-f]{6}$/.test(String(item.color_hex||''))?item.color_hex:'#fff'}"></span> ${esc(item.color_hex||'-')}</div>
         <label style="font-weight:800">Harga (RM)<input class="multi-item-quote-price" type="number" min="0" step="0.01" value="${index===0?bottomPrice:index===1?topPrice:0}" style="width:100%;padding:10px;margin-top:5px"></label>
       </div>`).join('')}
     </div>` : `
