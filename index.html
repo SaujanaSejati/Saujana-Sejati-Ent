@@ -2136,7 +2136,7 @@ function renderAgents(arr){
   const c=document.getElementById('agentCount');if(c)c.textContent=activeAgentCount+'/10 agent aktif';
   const g=document.getElementById('agentGrid');
   if(!active.length){g.innerHTML='<div class="project-item">Belum ada agent. Tekan “Daftar Agent”.</div>';return}
-  const base='https://SaujanaSejati.github.io/Saujana-Sejati-Customer/';
+  const base='https://SaujanaSejati.github.io/Saujana-Sejati-Ent/';
   g.innerHTML=active.map(a=>{
     const url=base+encodeURIComponent(String(a.slug||'').toLowerCase().trim())+'/agent';
     if(a.isMasterAdmin){
