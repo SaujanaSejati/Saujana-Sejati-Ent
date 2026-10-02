@@ -1170,6 +1170,16 @@ async function saveStructuredQuotation(id){
  if(!colorName && colorHex) colorName='Warna Pilihan';
  if(colorName && !colorHex) colorHex='#111111';
  const structure={bottomName:document.getElementById('editBottomName')?.value.trim()||'Item 1',bottomMeasure:document.getElementById('editBottomMeasure')?.value.trim()||'',bottomPrice,topName:document.getElementById('editTopName')?.value.trim()||'Item 2',topMeasure:document.getElementById('editTopMeasure')?.value.trim()||'',topPrice};
+ const existingBookingItems=Array.isArray(window.currentQuoteBookingItems)?window.currentQuoteBookingItems:[];
+ if(existingBookingItems.length>1){
+  const itemPrices=[...modal.querySelectorAll('.multi-item-quote-price')];
+  structure.items=existingBookingItems.map((item,index)=>({
+   name:String(item.item_type||'Item '+(index+1)),
+   measure:String(item.measurement||'-'),
+   material:String(item.material||b.material||'-'),
+   price:Math.max(0,Number(itemPrices[index]?.value||0))
+  }));
+ }
  const payload={
   customer_name:document.getElementById('editCustomerName')?.value.trim()||b.customer_name,
   phone:document.getElementById('editCustomerPhone')?.value.trim()||b.phone,
@@ -1225,18 +1235,26 @@ function getEffectiveQuotation(id,bookingOverride=null){
  const storedSale=Number(b.estimated_price)||0;
  const bottomPrice=Number(bottom.price??structure?.bottomPrice??storedSale)||0;
  const topPrice=Number(top.price??structure?.topPrice??0)||0;
- const item1={name:String(bottom.name||structure?.bottomName||b.cabinet_type||'Kabinet').trim(),measure:String(bottom.measure||structure?.bottomMeasure||b.measurement||'-').trim(),price:bottomPrice};
- const item2={name:String(top.name||structure?.topName||'Kabinet Atas').trim(),measure:String(top.measure||structure?.topMeasure||'-').trim(),price:topPrice};
+ const legacyItems=[
+  {name:String(bottom.name||structure?.bottomName||b.cabinet_type||'Kabinet').trim(),measure:String(bottom.measure||structure?.bottomMeasure||b.measurement||'-').trim(),price:bottomPrice},
+  {name:String(top.name||structure?.topName||'Kabinet Atas').trim(),measure:String(top.measure||structure?.topMeasure||'-').trim(),price:topPrice}
+ ];
+ const multiItems=Array.isArray(structure?.items)?structure.items.map(x=>({name:String(x.name||'Item').trim(),measure:String(x.measure||'-').trim(),material:String(x.material||b.material||'-').trim(),price:Number(x.price)||0})):null;
+ const quoteItems=multiItems?.length?multiItems:legacyItems;
+ const item1=quoteItems[0]||legacyItems[0], item2=quoteItems[1]||legacyItems[1];
  const additional=Number(b.nilai_tambahan)||0,deposit=Number(b.deposit??b.deposit_amount)||0;
  const extrasClean=extras.map(x=>({name:String(x.name||'Item Tambahan').trim(),price:Number(x.price)||0})).filter(x=>x.name||x.price);
  const accessories=Array.isArray(b.accessories)?b.accessories:(b.accessories?String(b.accessories).split(',').map(x=>x.trim()).filter(Boolean):[]);
- const itemTotal=item1.price+item2.price;
+ const itemTotal=quoteItems.reduce((sum,item)=>sum+(Number(item.price)||0),0);
  const total=itemTotal+additional+extrasClean.reduce((s,x)=>s+x.price,0);
- return {b,item1,item2,additional,deposit,extras:extrasClean,accessories,total,itemTotal,balance:Math.max(0,total-deposit),structure};
+ return {b,item1,item2,items:quoteItems,additional,deposit,extras:extrasClean,accessories,total,itemTotal,balance:Math.max(0,total-deposit),structure};
 }
 function quotationRowsHtml(q){
- let n=1,html=`<tr><td class="c">${n++}</td><td><b>${esc(q.item1.name)}</b><br>${esc(q.b.material||'-')} · Ukuran: ${esc(q.item1.measure)}</td><td class="right">${money(q.item1.price)}</td></tr>`;
- if(q.item2.price>0 || q.structure)html+=`<tr><td class="c">${n++}</td><td><b>${esc(q.item2.name)}</b><br>${esc(q.b.material||'-')} · Ukuran: ${esc(q.item2.measure)}</td><td class="right">${money(q.item2.price)}</td></tr>`;
+ let n=1,html='';
+ (q.items||[q.item1,q.item2]).forEach((item,index)=>{
+  if(index===0 || Number(item.price)>0 || (q.items||[]).length>1 || q.structure)
+   html+=`<tr><td class="c">${n++}</td><td><b>${esc(item.name)}</b><br>${esc(item.material||q.b.material||'-')} · Ukuran: ${esc(item.measure||'-')}</td><td class="right">${money(item.price)}</td></tr>`;
+ });
  if(q.additional>0)html+=`<tr><td class="c">${n++}</td><td>Nilai Tambahan</td><td class="right">${money(q.additional)}</td></tr>`;
  q.extras.forEach(x=>html+=`<tr><td class="c">${n++}</td><td>${esc(x.name)}</td><td class="right">${money(x.price)}</td></tr>`);
  return html;
