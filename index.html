@@ -380,6 +380,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 
   <div class="side-group">LAPORAN</div>
   <button data-side="reports" onclick="showScreen('reports')">📊 <span>Laporan</span></button>
+  <button data-side="feedback" onclick="showScreen('feedback')">💬 <span>Maklum Balas Website</span></button>
   <div class="side-group">LAMAN WEB</div>
   <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button>
   <div class="side-group">PENGURUSAN</div>
@@ -506,6 +507,8 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 </div>
 </section>
 
+<section id="feedback" class="screen"><div class="wrap"><div class="section-title"><div><h2>Maklum Balas Website</h2><div class="muted">Semak penilaian pengguna dan kenal pasti kelemahan website.</div></div><a class="btn" style="background:#222;color:#fff;text-decoration:none" href="feedback-admin.html" target="_blank" rel="noopener">Buka Paparan Penuh ↗</a></div><div style="background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden;min-height:650px"><iframe src="feedback-admin.html" title="Maklum Balas Website Admin" style="display:block;width:100%;height:760px;border:0" loading="lazy"></iframe></div></div></section>
+
 </main><footer><img class="footer-logo" src="logo-saujana-sejati.jpg"><p>“Rumah Lebih Selesa, Hidup Lebih Bahagia”</p></footer>
 <nav>
 <button id="navHome" class="active" onclick="showScreen('home')"><span class="navico">⌂</span>Home</button>
@@ -515,6 +518,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 <button id="navProjects" onclick="showScreen('projects')"><span class="navico">▦</span>Projek</button>
 <button id="navDashboard" onclick="showScreen('dashboard')"><span class="navico">▥</span>Dashboard</button>
 <button id="navReports" onclick="showScreen('reports')"><span class="navico">▤</span>Laporan</button>
+<button id="navFeedback" onclick="showScreen('feedback')"><span class="navico">💬</span>Maklum Balas</button>
 <button id="navAgents" onclick="showScreen('agents')"><span class="navico">👥</span>Agent</button>
 </nav>
  
@@ -524,7 +528,7 @@ const SUPABASE_URL="https://wvxaiojnxwzcdrczbdup.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let websiteBookings=[];
-const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
+const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',feedback:'navFeedback',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
   const restrictedAgentScreens=['agents','reports','videoHome'];
   if(window.currentUserRole==='agent'){
