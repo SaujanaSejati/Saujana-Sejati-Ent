@@ -12,7 +12,7 @@ async function load(){
   if(profileError||!profile||!profile.active||!['owner','manager'].includes(profile.role)){statusEl.textContent='Akses ditolak. Halaman ini hanya untuk Admin owner/manager yang aktif.';return;}
   const {data,error}=await db.from('website_feedback').select('id,full_name,phone,rating,ease_of_use,reasons,explanation,created_at').order('created_at',{ascending:false}).limit(500);
   if(error)throw error;
-  const {data:reviewData,error:reviewError}=await db.from('customer_reviews').select('id,booking_id,customer_name,project_type,rating,comment,status,created_at').order('created_at',{ascending:false}).limit(500);
+  const {data:reviewData,error:reviewError}=await db.from('customer_reviews').select('id,booking_id,customer_name,project_type,rating,comment,status,created_at,project_photo_url').order('created_at',{ascending:false}).limit(500);
   if(reviewError)throw reviewError;
   const rows=data||[],reviews=reviewData||[];document.getElementById('content').hidden=false;statusEl.textContent='Akses disahkan. Data dikemas kini.';
   document.getElementById('total').textContent=rows.length;
@@ -26,8 +26,19 @@ async function load(){
   document.getElementById('reviewPending').textContent=reviews.filter(r=>r.status==='pending').length;
   document.getElementById('reviewAverage').textContent=reviews.length?(reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1)+'/5':'—';
   const photoUrls={};
-  await Promise.all(reviews.filter(r=>r.project_photo_url).map(async r=>{const {data:photoData}=await db.storage.from('customer-reference-images').createSignedUrl(r.project_photo_url,3600);if(photoData?.signedUrl)photoUrls[r.id]=photoData.signedUrl;}));
-  document.getElementById('reviewEntries').innerHTML=reviews.length?reviews.map(r=>'<article class="entry"><div class="rating">'+('⭐'.repeat(r.rating))+' <b>'+r.rating+'/5</b></div><p><b>'+safe(r.customer_name)+'</b> · '+safe(r.project_type)+'</p><p class="muted">'+new Date(r.created_at).toLocaleString('ms-MY')+' · Booking '+safe(r.booking_id||'—')+'</p>'+(photoUrls[r.id]?'<p><a href="'+safe(photoUrls[r.id])+'" target="_blank" rel="noopener"><img src="'+safe(photoUrls[r.id])+'" alt="Gambar kabinet siap pelanggan" style="display:block;max-width:100%;max-height:320px;border-radius:10px;border:1px solid #ddd"></a></p>':'<p class="muted">Tiada gambar kabinet dimuat naik.</p>')+'<p>'+safe(r.comment)+'</p><p><b>Status:</b> '+safe(r.status)+'</p><div class="entry-actions">'+(r.status!=='approved'?'<button style="background:#19733b" onclick="setReviewStatus('+r.id+',\'approved\')">✓ Luluskan</button>':'')+(r.status!=='rejected'?'<button style="background:#b3261e" onclick="setReviewStatus('+r.id+',\'rejected\')">Tolak</button>':'')+(r.status!=='pending'?'<button style="background:#555" onclick="setReviewStatus('+r.id+',\'pending\')">Set pending</button>':'')+'</div></article>').join(''):'Belum ada rating pelanggan diterima.';
+  await Promise.all(reviews.filter(r=>r.project_photo_url).map(async r=>{
+   let paths=[];
+   try{const parsed=JSON.parse(r.project_photo_url);paths=Array.isArray(parsed)?parsed:[r.project_photo_url];}
+   catch{paths=[r.project_photo_url];}
+   const urls=[];
+   for(const path of paths.filter(Boolean).slice(0,3)){
+    const {data:photoData,error:photoError}=await db.storage.from('customer-reference-images').createSignedUrl(path,3600);
+    if(photoData?.signedUrl)urls.push(photoData.signedUrl);
+    else console.warn('Gambar kabinet tidak dapat dibuka:',path,photoError);
+   }
+   if(urls.length)photoUrls[r.id]=urls;
+  }));
+  document.getElementById('reviewEntries').innerHTML=reviews.length?reviews.map(r=>'<article class="entry"><div class="rating">'+('⭐'.repeat(r.rating))+' <b>'+r.rating+'/5</b></div><p><b>'+safe(r.customer_name)+'</b> · '+safe(r.project_type)+'</p><p class="muted">'+new Date(r.created_at).toLocaleString('ms-MY')+' · Booking '+safe(r.booking_id||'—')+'</p>'+(photoUrls[r.id]?'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0">'+photoUrls[r.id].map((url,i)=>'<a href="'+safe(url)+'" target="_blank" rel="noopener"><img src="'+safe(url)+'" alt="Gambar kabinet siap '+(i+1)+'" style="display:block;width:100%;height:190px;object-fit:cover;border-radius:10px;border:1px solid #ddd"></a>').join('')+'</div>':'<p class="muted">Tiada gambar kabinet dimuat naik.</p>')+'<p>'+safe(r.comment)+'</p><p><b>Status:</b> '+safe(r.status)+'</p><div class="entry-actions">'+(r.status!=='approved'?'<button style="background:#19733b" onclick="setReviewStatus('+r.id+',\\'approved\\')">✓ Luluskan</button>':'')+(r.status!=='rejected'?'<button style="background:#b3261e" onclick="setReviewStatus('+r.id+',\\'rejected\\')">Tolak</button>':'')+(r.status!=='pending'?'<button style="background:#555" onclick="setReviewStatus('+r.id+',\\'pending\\')">Set pending</button>':'')+'</div></article>').join(''):'Belum ada rating pelanggan diterima.';
  }catch(e){console.error(e);statusEl.textContent='Tidak dapat memuatkan data. Semak sambungan atau kebenaran database.';}
 }
 async function setReviewStatus(id,status){
