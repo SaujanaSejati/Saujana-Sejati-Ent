@@ -2251,13 +2251,12 @@ function renderAgents(arr){
   const c=document.getElementById('agentCount');if(c)c.textContent=activeAgentCount+'/10 agent aktif';
   const g=document.getElementById('agentGrid');
   if(!active.length){g.innerHTML='<div class="project-item">Belum ada agent. Tekan “Daftar Agent”.</div>';return}
-  const adminBase='https://saujanasejati.github.io/Saujana-Sejati-Customer/admin/';
   const customerBase='https://saujanasejati.github.io/Saujana-Sejati-Customer/';
   g.innerHTML=active.map(a=>{
     const slug=encodeURIComponent(String(a.slug||'').toLowerCase().trim());
     const url=a.isMasterAdmin
-      ? adminBase+slug.charAt(0).toUpperCase()+slug.slice(1)+'/'
-      : customerBase+'agent/'+slug;
+      ? customerBase+slug+'/admin'
+      : customerBase+slug+'/agent';
     if(a.isMasterAdmin){
       return `<article class="catalog-admin-card"><div class="ci">
         <span class="cat-pill" style="background:#e9eef8;color:#126bd6">ADMIN • FULL ACCESS</span>
