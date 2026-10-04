@@ -1,8 +1,31 @@
-<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maklum Balas Website — Admin</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#17191d;font:15px Arial,sans-serif}.top{background:#111;color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}.top a{color:#111;background:#fff;text-decoration:none;border-radius:7px;padding:9px 12px;font-weight:bold}main{max-width:1100px;margin:auto;padding:18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat,.panel,.entry{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px}.stat strong{font-size:28px;display:block;margin-top:6px}.panel{margin:14px 0}.entry{margin:10px 0}.entry-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.entry-actions button{border:0;border-radius:7px;padding:9px 12px;font-weight:bold;color:#fff}.rating{font-size:21px}.muted{color:#69717d;font-size:13px}.reason{display:inline-block;background:#f0f1f3;border-radius:20px;padding:6px 9px;margin:5px 5px 0 0}.status{padding:12px;border-radius:8px;background:#fff4d4;margin-bottom:12px}@media(max-width:650px){.stats{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}</style></head><body><header class="top"><b>SAUJANA SEJATI ENT · MAKLUM BALAS WEBSITE</b><a href="index.html">← Admin utama</a></header><main><h1>Maklum Balas Pengguna Website</h1><p class="muted">Paparan ini hanya untuk Admin (owner/manager) yang telah log masuk.</p><div id="status" class="status">Menyemak akses...</div><div id="content" hidden><div class="stats"><div class="stat">Jumlah maklum balas<strong id="total">0</strong></div><div class="stat">Purata markah<strong id="average">—</strong></div><div class="stat">Markah rendah (1–3)<strong id="low">0</strong></div></div><section class="panel"><h2>Sebab markah rendah</h2><div id="reasonSummary" class="muted">Belum ada data.</div></section><section class="panel"><h2>Maklum balas orang awam tentang website</h2><div id="entries">Memuatkan...</div></section><section class="panel"><h2>Rating pelanggan selepas projek selesai</h2><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat">Jumlah rating<strong id="reviewTotal">0</strong></div><div class="stat">Menunggu semakan<strong id="reviewPending">0</strong></div><div class="stat">Purata bintang<strong id="reviewAverage">—</strong></div></div><div id="reviewEntries">Memuatkan rating pelanggan...</div></section></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maklum Balas Website — Admin</title><style>*{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#17191d;font:15px Arial,sans-serif}.top{background:#111;color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}.top a{color:#111;background:#fff;text-decoration:none;border-radius:7px;padding:9px 12px;font-weight:bold}main{max-width:1100px;margin:auto;padding:18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat,.panel,.entry{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px}.stat strong{font-size:28px;display:block;margin-top:6px}.panel{margin:14px 0}.entry{margin:10px 0}.entry-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.entry-actions button{border:0;border-radius:7px;padding:9px 12px;font-weight:bold;color:#fff}.rating{font-size:21px}.muted{color:#69717d;font-size:13px}.reason{display:inline-block;background:#f0f1f3;border-radius:20px;padding:6px 9px;margin:5px 5px 0 0}.status{padding:12px;border-radius:8px;background:#fff4d4;margin-bottom:12px}@media(max-width:650px){.stats{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}</style></head><body><header class="top"><b>SAUJANA SEJATI ENT · MAKLUM BALAS WEBSITE</b><a href="index.html">← Admin utama</a></header><main><h1>Maklum Balas Pengguna Website</h1><p class="muted">Paparan ini hanya untuk Admin (owner/manager) yang telah log masuk.</p><button id="enableNotifications" type="button" style="border:0;border-radius:8px;background:#1769d2;color:#fff;padding:11px 14px;font-weight:bold;cursor:pointer;margin:8px 0">🔔 Aktifkan notifikasi maklum balas</button><div id="notificationNotice" class="status" hidden></div><div id="status" class="status">Menyemak akses...</div><div id="content" hidden><div class="stats"><div class="stat">Jumlah maklum balas<strong id="total">0</strong></div><div class="stat">Purata markah<strong id="average">—</strong></div><div class="stat">Markah rendah (1–3)<strong id="low">0</strong></div></div><section class="panel"><h2>Sebab markah rendah</h2><div id="reasonSummary" class="muted">Belum ada data.</div></section><section class="panel"><h2>Maklum balas orang awam tentang website</h2><div id="entries">Memuatkan...</div></section><section class="panel"><h2>Rating pelanggan selepas projek selesai</h2><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat">Jumlah rating<strong id="reviewTotal">0</strong></div><div class="stat">Menunggu semakan<strong id="reviewPending">0</strong></div><div class="stat">Purata bintang<strong id="reviewAverage">—</strong></div></div><div id="reviewEntries">Memuatkan rating pelanggan...</div></section></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const SUPABASE_URL="https://wvxaiojnxwzcdrczbdup.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const statusEl=document.getElementById('status');
+const notificationButton=document.getElementById('enableNotifications');
+const notificationNotice=document.getElementById('notificationNotice');
+let knownFeedbackIds=null,notificationEnabled=false,audioContext=null;
+function showNotification(message){
+ notificationNotice.hidden=false;notificationNotice.textContent='🔔 '+message;
+ if(notificationEnabled){
+  try{
+   const AudioCtx=window.AudioContext||window.webkitAudioContext;
+   if(AudioCtx){audioContext=audioContext||new AudioCtx();if(audioContext.state==='suspended')audioContext.resume();const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();oscillator.type='sine';oscillator.frequency.value=880;gain.gain.value=0.12;oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+0.22);}
+  }catch(e){console.warn('Bunyi notifikasi tidak tersedia',e);}
+  if('Notification' in window&&Notification.permission==='granted'){
+   try{new Notification('Saujana Sejati Ent',{body:message,icon:'https://saujanasejati.github.io/Saujana-Sejati-Ent/favicon.ico'});}catch(e){console.warn(e);}
+  }
+ }
+}
+notificationButton.addEventListener('click',async()=>{
+ notificationEnabled=true;
+ if('Notification' in window&&Notification.permission==='default'){try{await Notification.requestPermission();}catch(e){}}
+ notificationButton.textContent='🔔 Notifikasi diaktifkan';
+ notificationButton.style.background='#19733b';
+ notificationNotice.hidden=false;
+ notificationNotice.textContent='Notifikasi aktif. Halaman ini akan menyemak maklum balas baharu setiap 30 saat. Pastikan halaman admin terbuka.';
+});
 function safe(text){return String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function load(){
  try{
@@ -14,7 +37,14 @@ async function load(){
   if(error)throw error;
   const {data:reviewData,error:reviewError}=await db.from('customer_reviews').select('id,booking_id,customer_name,project_type,rating,comment,status,created_at,project_photo_url').order('created_at',{ascending:false}).limit(500);
   if(reviewError)throw reviewError;
-  const rows=data||[],reviews=reviewData||[];document.getElementById('content').hidden=false;statusEl.textContent='Akses disahkan. Data dikemas kini.';
+  const rows=data||[],reviews=reviewData||[];
+  const currentIds=new Set([...rows.map(r=>'public:'+r.id),...reviews.map(r=>'review:'+r.id)]);
+  if(knownFeedbackIds!==null){
+   const newCount=[...currentIds].filter(id=>!knownFeedbackIds.has(id)).length;
+   if(newCount>0)showNotification(newCount+' maklum balas/rating baharu diterima.');
+  }
+  knownFeedbackIds=currentIds;
+  document.getElementById('content').hidden=false;statusEl.textContent='Akses disahkan. Data dikemas kini.';
   document.getElementById('total').textContent=rows.length;
   document.getElementById('average').textContent=rows.length?(rows.reduce((s,r)=>s+r.rating,0)/rows.length).toFixed(1)+'/5':'—';
   document.getElementById('low').textContent=rows.filter(r=>r.rating<=3).length;
@@ -66,4 +96,5 @@ async function deleteFeedback(id){
  if(error){alert('Gagal padam: '+error.message);return;}await load();alert('Maklum balas berjaya dipadam.');
 }
 load();
+setInterval(()=>{if(!document.hidden)load();},30000);
 </script></body></html>
