@@ -64,6 +64,27 @@ pushButton.addEventListener('click',async()=>{
  }catch(error){pushStatus.textContent='Belum berjaya: '+(error?.message||String(error));pushStatus.style.color='#b3261e';}
  finally{pushButton.disabled=false;}
 });
+
+// Pulihkan status pendaftaran push secara automatik apabila halaman dibuka semula.
+async function restorePushRegistrationStatus(){
+ try{
+  if(!('serviceWorker' in navigator)||!('PushManager' in window))return;
+  const registration=await navigator.serviceWorker.getRegistration('/Saujana-Sejati-Ent/');
+  if(!registration)return;
+  const subscription=await registration.pushManager.getSubscription();
+  if(subscription){
+   pushStatus.textContent='✓ Peranti ini sudah mempunyai langganan push. Tidak perlu daftar semula. Notifikasi bergantung pada kebenaran browser/peranti.';
+   pushStatus.style.color='#19733b';
+   pushButton.textContent='✓ Peranti telah didaftarkan';
+  }
+ }catch(error){console.warn('Tidak dapat menyemak langganan push sedia ada:',error);}
+}
+if(document.readyState==='loading'){
+ document.addEventListener('DOMContentLoaded',restorePushRegistrationStatus,{once:true});
+}else{
+ restorePushRegistrationStatus();
+}
+
 notificationButton.addEventListener('click',async()=>{
  notificationEnabled=true;
  try{
