@@ -1738,7 +1738,24 @@ window.updateBookingStatus = async function(id,status){
     renderWebsiteBookings();
     if(typeof renderCustomerProjects==='function')renderCustomerProjects();
     if(typeof refreshDashboardTotals==='function')refreshDashboardTotals();
-    alert('✅ Status berjaya ditukar kepada '+status.toUpperCase()+'.');
+
+    if(status==='selesai'){
+      alert('✅ Tempahan berjaya ditandakan SELESAI.\n\nWhatsApp akan dibuka dengan pautan maklum balas pelanggan. Semak mesej dan tekan Hantar.');
+      const rawPhone=String(b.phone||'').replace(/[^0-9+]/g,'');
+      let waPhone=rawPhone;
+      if(waPhone.startsWith('+'))waPhone=waPhone.slice(1);
+      if(waPhone.startsWith('0'))waPhone='60'+waPhone.slice(1);
+      else if(!waPhone.startsWith('60'))waPhone='60'+waPhone;
+      const feedbackUrl='https://saujanasejati.github.io/Saujana-Sejati-Customer/feedback.html?booking_id='+encodeURIComponent(String(b.id));
+      const message='Assalamualaikum '+(b.customer_name||'Tuan/Puan')+', terima kasih kerana memilih Saujana Sejati Ent untuk tempahan kabinet anda.\n\nKami berharap anda berpuas hati dengan hasil pemasangan. Kami menjemput anda berkongsi maklum balas di pautan ini:\n'+feedbackUrl+'\n\nTerima kasih, Saujana Sejati Ent.';
+      if(waPhone && waPhone.length>=10){
+        window.open('https://wa.me/'+waPhone+'?text='+encodeURIComponent(message),'_blank');
+      }else{
+        alert('Nombor telefon pelanggan tiada atau tidak sah. Salin pautan maklum balas ini dan hantar kepada pelanggan:\n'+feedbackUrl);
+      }
+    }else{
+      alert('✅ Status berjaya ditukar kepada '+status.toUpperCase()+'.');
+    }
   }catch(error){
     console.error(error);
     alert('❌ Ralat button status\n\n'+(error.message||error));
