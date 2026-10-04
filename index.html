@@ -380,7 +380,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 
   <div class="side-group">LAPORAN</div>
   <button data-side="reports" onclick="showScreen('reports')">📊 <span>Laporan</span></button>
-  <button data-side="feedback" onclick="showScreen('feedback')">💬 <span>Maklum Balas Website</span></button>
+  <button data-side="feedback" onclick="showScreen('feedback')">💬 <span>Maklum Balas Website</span><span id="sideFeedbackBadge" class="side-badge" style="display:none">0</span></button>
   <div class="side-group">LAMAN WEB</div>
   <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button>
   <div class="side-group">PENGURUSAN</div>
@@ -2486,5 +2486,25 @@ async function deleteHomepageVideo(id){
   if(e2)console.warn('Storage remove:',e2);
   await loadHomepageVideos();alert('✅ Video dipadam.');
 }
+
+async function updateFeedbackSidebarBadge(){
+ try{
+  if(window.currentUserRole!=='admin' && window.currentUserRole!=='owner' && window.currentUserRole!=='manager')return;
+  const badge=document.getElementById('sideFeedbackBadge');
+  if(!badge)return;
+  const [publicResult,reviewResult]=await Promise.all([
+   supabaseClient.from('website_feedback').select('id',{count:'exact',head:true}),
+   supabaseClient.from('customer_reviews').select('id',{count:'exact',head:true})
+  ]);
+  if(publicResult.error||reviewResult.error)throw publicResult.error||reviewResult.error;
+  const total=(publicResult.count||0)+(reviewResult.count||0);
+  badge.textContent=total>99?'99+':String(total);
+  badge.style.display=total>0?'inline-block':'none';
+ }catch(e){console.warn('Bilangan maklum balas sidebar tidak dapat dikemas kini:',e);}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ updateFeedbackSidebarBadge();
+ setInterval(updateFeedbackSidebarBadge,30000);
+});
 </script>
 </body></html>
