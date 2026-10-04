@@ -6,13 +6,23 @@ const statusEl=document.getElementById('status');
 const notificationButton=document.getElementById('enableNotifications');
 const notificationNotice=document.getElementById('notificationNotice');
 let knownFeedbackIds=null,notificationEnabled=false,audioContext=null;
+function playNoticeTone(){
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  audioContext=audioContext||new AudioCtx();
+  if(audioContext.state==='suspended')audioContext.resume();
+  const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();
+  oscillator.type='sine';oscillator.frequency.value=880;gain.gain.setValueAtTime(0.0001,audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.16,audioContext.currentTime+0.025);
+  gain.gain.exponentialRampToValueAtTime(0.0001,audioContext.currentTime+0.42);
+  oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+0.45);
+ }catch(e){console.warn('Bunyi notifikasi tidak tersedia',e);}
+}
 function showNotification(message){
  notificationNotice.hidden=false;notificationNotice.textContent='🔔 '+message;
  if(notificationEnabled){
-  try{
-   const AudioCtx=window.AudioContext||window.webkitAudioContext;
-   if(AudioCtx){audioContext=audioContext||new AudioCtx();if(audioContext.state==='suspended')audioContext.resume();const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();oscillator.type='sine';oscillator.frequency.value=880;gain.gain.value=0.12;oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+0.22);}
-  }catch(e){console.warn('Bunyi notifikasi tidak tersedia',e);}
+  playNoticeTone();
   if('Notification' in window&&Notification.permission==='granted'){
    try{new Notification('Saujana Sejati Ent',{body:message,icon:'https://saujanasejati.github.io/Saujana-Sejati-Ent/favicon.ico'});}catch(e){console.warn(e);}
   }
@@ -56,11 +66,15 @@ pushButton.addEventListener('click',async()=>{
 });
 notificationButton.addEventListener('click',async()=>{
  notificationEnabled=true;
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(AudioCtx){audioContext=audioContext||new AudioCtx();await audioContext.resume();playNoticeTone();}
+ }catch(e){console.warn('Audio belum boleh diaktifkan',e);}
  if('Notification' in window&&Notification.permission==='default'){try{await Notification.requestPermission();}catch(e){}}
- notificationButton.textContent='🔔 Notifikasi diaktifkan';
+ notificationButton.textContent='🔔 Bunyi & notifikasi aktif';
  notificationButton.style.background='#19733b';
  notificationNotice.hidden=false;
- notificationNotice.textContent='Notifikasi aktif. Halaman ini akan menyemak maklum balas baharu setiap 30 saat. Pastikan halaman admin terbuka.';
+ notificationNotice.textContent='Bunyi ujian dimainkan. Notifikasi aktif; halaman admin perlu terbuka untuk semakan setiap 30 saat. Untuk push ketika halaman ditutup, benarkan notifikasi browser/peranti.';
 });
 function safe(text){return String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function load(){
@@ -76,8 +90,13 @@ async function load(){
   const rows=data||[],reviews=reviewData||[];
   const currentIds=new Set([...rows.map(r=>'public:'+r.id),...reviews.map(r=>'review:'+r.id)]);
   if(knownFeedbackIds!==null){
-   const newCount=[...currentIds].filter(id=>!knownFeedbackIds.has(id)).length;
-   if(newCount>0)showNotification(newCount+' maklum balas/rating baharu diterima.');
+   const newRows=rows.filter(r=>!knownFeedbackIds.has('public:'+r.id));
+   const newReviews=reviews.filter(r=>!knownFeedbackIds.has('review:'+r.id));
+   const messages=[];
+   newRows.slice(0,3).forEach(r=>messages.push('Maklum balas website: '+(r.full_name||'Pengunjung')+' · '+r.rating+'/5'));
+   newReviews.slice(0,3).forEach(r=>messages.push('Rating pelanggan: '+(r.customer_name||'Pelanggan')+' · '+r.rating+'/5 · '+(r.project_type||'Projek')));
+   const newCount=newRows.length+newReviews.length;
+   if(newCount>0)showNotification(messages.join(' | ')+(newCount>messages.length?' | dan '+(newCount-messages.length)+' lagi':''));
   }
   knownFeedbackIds=currentIds;
   document.getElementById('content').hidden=false;statusEl.textContent='Akses disahkan. Data dikemas kini.';
