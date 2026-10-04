@@ -530,6 +530,10 @@ const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY
 let websiteBookings=[];
 const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',feedback:'navFeedback',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
+  if(id==='feedback'){
+    try{localStorage.setItem('saujanaFeedbackLastReadAt',new Date().toISOString());}catch(e){}
+    setTimeout(()=>updateFeedbackSidebarBadge(),0);
+  }
   const restrictedAgentScreens=['agents','reports','videoHome'];
   if(window.currentUserRole==='agent'){
     ['reports','videoHome','agents'].forEach(key=>{
@@ -2492,12 +2496,17 @@ async function updateFeedbackSidebarBadge(){
   if(window.currentUserRole!=='admin' && window.currentUserRole!=='owner' && window.currentUserRole!=='manager')return;
   const badge=document.getElementById('sideFeedbackBadge');
   if(!badge)return;
-  const [publicResult,reviewResult]=await Promise.all([
-   supabaseClient.from('website_feedback').select('id',{count:'exact',head:true}),
-   supabaseClient.from('customer_reviews').select('id',{count:'exact',head:true})
-  ]);
+  let lastRead='';
+  try{lastRead=localStorage.getItem('saujanaFeedbackLastReadAt')||'';}catch(e){}
+  let publicQuery=supabaseClient.from('website_feedback').select('id,created_at');
+  let reviewQuery=supabaseClient.from('customer_reviews').select('id,created_at');
+  if(lastRead){
+    publicQuery=publicQuery.gt('created_at',lastRead);
+    reviewQuery=reviewQuery.gt('created_at',lastRead);
+  }
+  const [publicResult,reviewResult]=await Promise.all([publicQuery,reviewQuery]);
   if(publicResult.error||reviewResult.error)throw publicResult.error||reviewResult.error;
-  const total=(publicResult.count||0)+(reviewResult.count||0);
+  const total=(publicResult.data||[]).length+(reviewResult.data||[]).length;
   badge.textContent=total>99?'99+':String(total);
   badge.style.display=total>0?'inline-block':'none';
  }catch(e){console.warn('Bilangan maklum balas sidebar tidak dapat dikemas kini:',e);}
