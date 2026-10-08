@@ -2059,12 +2059,8 @@ async function exportAnnualRecordsExcel(){
         }
       }catch(imgErr){console.warn('Logo Excel tidak dapat dimasukkan:',imgErr);}
     }
-    ws.mergeCells(1,1,2,7);
-    ws.getCell('A1').value='SAUJANA SEJATI ENTERPRISE';
-    ws.getCell('A2').value='CUSTOM CABINET & INTERIOR';
-    ws.getCell('A1').font={name:'Arial',size:18,bold:true,color:{argb:'FFFFFFFF'}};
-    ws.getCell('A2').font={name:'Arial',size:10,bold:true,color:{argb:'FFDCE6F2'}};
-
+    // A1:G1 dan A2:G2 telah digabungkan di atas.
+    // Jangan gabungkan A1:G2 kerana ia bertindih dengan merged cells sedia ada.
     ws.mergeCells(11+dataRows.length,1,11+dataRows.length,7);
     ws.getCell(11+dataRows.length,1).value='Dokumen dijana secara automatik daripada sistem rekod Saujana Sejati Ent.';
     ws.getCell(11+dataRows.length,1).font={name:'Arial',size:9,color:{argb:'FF667085'}};
