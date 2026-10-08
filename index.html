@@ -2085,6 +2085,7 @@ window.open('https://wa.me/'+customerPhone+'?text='+encodeURIComponent(msg),'_bl
 function deleteProject(i){let a=JSON.parse(localStorage.getItem('saujana_projects_v4')||'[]');a.splice(i,1);localStorage.setItem('saujana_projects_v4',JSON.stringify(a));renderData()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 let currentAuth=null;
+window.__saujanaAdminSession=()=>currentAuth;
 let editingAgentId=null;
 async function verifyAdminProfile(){
   if(!currentAuth)return false;
