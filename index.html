@@ -557,6 +557,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 const SUPABASE_URL="https://wvxaiojnxwzcdrczbdup.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+window.__saujanaSupabaseClient=supabaseClient;
 let websiteBookings=[];
 const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',feedback:'navFeedback',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
