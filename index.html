@@ -2650,7 +2650,8 @@ window.inlineReplyFeedback=async function(id){
 window.inlineFeedbackWhatsApp=function(phone){
  const clean=String(phone||'').replace(/\D/g,'');if(!clean){alert('Nombor WhatsApp customer tiada.');return;}
  const num=clean.startsWith('0')?'60'+clean.slice(1):clean;
- window.open('https://wa.me/'+num,'_blank','noopener');
+ const msg='Assalamualaikum & salam sejahtera Tuan/Puan.\\n\\nTerima kasih atas maklum balas dan penilaian yang diberikan kepada Saujana Sejati. ❤️\\nKami amat menghargai masa, kepercayaan dan sokongan Tuan/Puan.\\n\\nMaklum balas Tuan/Puan amat membantu kami untuk terus memperbaiki perkhidmatan.\\n\\nTerima kasih daripada kami, Saujana Sejati Ent. 🤝';
+ window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank','noopener');
 };
 window.inlineEditFeedback=async function(id){
  const {data,error}=await supabaseClient.from('website_feedback').select('rating,ease_of_use,reasons,explanation').eq('id',id).maybeSingle();
