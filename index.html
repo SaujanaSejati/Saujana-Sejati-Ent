@@ -599,9 +599,9 @@ function showScreen(id){
     try{localStorage.setItem('saujanaFeedbackLastReadAt',new Date().toISOString());}catch(e){}
     setTimeout(()=>updateFeedbackSidebarBadge(),0);
   }
-  const restrictedAgentScreens=['agents','reports','videoHome'];
+  const restrictedAgentScreens=['agents','reports','videoHome','profileMusic'];
   if(window.currentUserRole==='agent'){
-    ['reports','videoHome','agents'].forEach(key=>{
+    ['reports','videoHome','agents','profileMusic'].forEach(key=>{
       document.querySelectorAll('[data-side="'+key+'"],#navReports,#navAgents').forEach(el=>el.style.display='none');
     });
     if(restrictedAgentScreens.includes(id)){
