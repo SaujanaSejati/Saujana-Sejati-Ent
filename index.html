@@ -2594,6 +2594,7 @@ window.loadInlineFeedback=async function(){
       '<div style="margin-top:10px"><label style="font-weight:900;display:block;margin-bottom:5px">↩️ Balasan Saujana Sejati</label><textarea id="fbReply_'+escAttr(x.id)+'" style="width:100%;min-height:75px;border:1px solid #cfd6dd;border-radius:8px;padding:9px;resize:vertical">'+esc(reply)+'</textarea></div>'+
       (reply?'<div style="margin-top:8px;background:#f7f7f7;border-left:4px solid #e50914;padding:9px"><b>Balasan dipaparkan kepada customer</b><br>'+esc(reply)+(x.admin_replied_at?'<div class="muted" style="margin-top:4px">'+new Date(x.admin_replied_at).toLocaleString('ms-MY')+'</div>':'')+'</div>':'')+
       '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+
+      btn('🤖 Auto Balas',"inlineAutoReplyFeedback('"+escAttr(x.id)+"','Hairi')",'#8b5c00')+
       btn('↩️ Hantar Balasan',"inlineReplyFeedback('"+escAttr(x.id)+"')",'#087f45')+
       (phone?btn('💬 WhatsApp Customer',"inlineFeedbackWhatsApp('"+escAttr(phone)+"')",'#08a05a'):'')+
       btn('✏️ Edit',"inlineEditFeedback('"+escAttr(x.id)+"')",'#126bd6')+
@@ -2619,6 +2620,20 @@ window.loadInlineFeedback=async function(){
   '<h3 style="margin:20px 0 8px">💬 Maklum Balas Website</h3>'+(cards||'<p class="muted">Belum ada maklum balas.</p>')+
   '<h3 style="margin:24px 0 8px">⭐ Review / Kepuasan Pelanggan</h3>'+(reviewCards||'<p class="muted">Belum ada review pelanggan.</p>');
  }catch(e){console.error(e);el.innerHTML='<div style="padding:14px;background:#ffe8e8;color:#b3261e;border-radius:9px"><b>❌ Gagal memuatkan data.</b><br>'+esc(e.message||e)+'</div>';}
+};
+window.inlineAutoReplyFeedback=async function(id,picName){
+ const ta=document.getElementById('fbReply_'+id);if(!ta)return;
+ const name=(document.querySelector('[data-feedback-name="'+id+'"]')?.textContent||'').trim()||'Customer';
+ const pic=(picName||'Hairi').trim()||'Hairi';
+ const templates=[
+  'Terima kasih '+name+' atas maklum balas anda! ❤️ '+pic+' daripada Saujana Sejati sangat menghargai masa dan kepercayaan anda. Semoga urusan anda dipermudahkan.',
+  'Terima kasih '+name+' kerana meluangkan masa memberikan maklum balas. 🙏 '+pic+' dan team Saujana Sejati amat menghargai sokongan anda.',
+  'Terima kasih '+name+' atas rating dan komen anda! ❤️ Kami akan terus berusaha memberikan servis yang lebih baik. — '+pic+', Saujana Sejati'
+ ];
+ const choice=prompt('Pilih balasan:\n1. Terima kasih & kepercayaan\n2. Terima kasih & sokongan\n3. Ringkas & profesional','1');
+ if(choice===null)return;
+ ta.value=templates[Math.max(0,Math.min(2,(Number(choice)||1)-1))];
+ ta.focus();
 };
 window.inlineReplyFeedback=async function(id){
  const ta=document.getElementById('fbReply_'+id);const reply=ta?.value.trim()||'';
