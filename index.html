@@ -2536,33 +2536,53 @@ async function saveProfileMusic(){
   const volume=Number(document.getElementById('profileMusicVolume')?.value||25);
   const status=document.getElementById('profileMusicStatus');
   if(!title){alert('Sila masukkan nama lagu.');return;}
-  if(file && file.size>15*1024*1024){alert('Fail terlalu besar. Sila guna fail audio di bawah 15MB.');return;}
+  if(!file){alert('Sila pilih fail lagu MP3 dahulu.');return;}
+  if(file.size>15*1024*1024){alert('Fail terlalu besar. Sila guna fail audio di bawah 15MB.');return;}
   try{
-    status.textContent='⏳ Menyimpan...';
-    let storagePath=profileMusicAdminData?.storage_path||null;
-    if(file){
-      const ext=(file.name.split('.').pop()||'mp3').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp3';
-      storagePath='profile/'+crypto.randomUUID()+'.'+ext;
-      const {error:uploadError}=await supabaseClient.storage.from('profile-music').upload(storagePath,file,{contentType:file.type||'audio/mpeg',upsert:false});
-      if(uploadError)throw uploadError;
+    status.textContent='⏳ Menyemak sesi Admin...';
+    const {data:sessionData,error:sessionError}=await supabaseClient.auth.getSession();
+    if(sessionError)throw sessionError;
+    if(!sessionData?.session){
+      status.textContent='❌ Sesi Admin tamat. Sila Log Keluar dan Log Masuk semula.';
+      alert('Sesi Admin tidak aktif. Sila Log Keluar dan Log Masuk semula.');
+      return;
     }
-    if(!storagePath){alert('Sila upload fail lagu dahulu.');status.textContent='';return;}
+
+    status.textContent='⏳ Upload lagu...';
+    const ext=(file.name.split('.').pop()||'mp3').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp3';
+    const storagePath='profile/'+crypto.randomUUID()+'.'+ext;
+    const {error:uploadError}=await supabaseClient.storage.from('profile-music').upload(storagePath,file,{
+      contentType:file.type||'audio/mpeg',
+      cacheControl:'3600',
+      upsert:false
+    });
+    if(uploadError)throw new Error('Upload Storage gagal: '+uploadError.message);
+
+    status.textContent='⏳ Menyimpan tetapan...';
     if(active){
-      const {error:deactivateError}=await supabaseClient.from('profile_music_settings').update({is_active:false}).neq('id',profileMusicAdminData?.id||'00000000-0000-0000-0000-000000000000');
-      if(deactivateError)throw deactivateError;
+      const {error:deactivateError}=await supabaseClient.from('profile_music_settings')
+        .update({is_active:false})
+        .neq('id',profileMusicAdminData?.id||'00000000-0000-0000-0000-000000000000');
+      if(deactivateError)throw new Error('Gagal nyahaktif lagu lama: '+deactivateError.message);
     }
-    let rowId=profileMusicAdminData?.id;
+
+    const payload={title,storage_path:storagePath,is_active:active,volume,updated_at:new Date().toISOString()};
     let result;
-    if(rowId){
-      result=await supabaseClient.from('profile_music_settings').update({title,storage_path:storagePath,is_active:active,volume,updated_at:new Date().toISOString()}).eq('id',rowId);
+    if(profileMusicAdminData?.id){
+      result=await supabaseClient.from('profile_music_settings').update(payload).eq('id',profileMusicAdminData.id);
     }else{
-      result=await supabaseClient.from('profile_music_settings').insert([{title,storage_path:storagePath,is_active:active,volume}]);
+      result=await supabaseClient.from('profile_music_settings').insert([payload]);
     }
-    if(result.error)throw result.error;
+    if(result.error)throw new Error('Database gagal simpan: '+result.error.message);
+
     alert('Tetapan muzik berjaya disimpan. 🎵');
     await loadProfileMusicSettings();
     status.textContent='✅ Disimpan. Customer Profile akan menggunakan tetapan ini.';
-  }catch(e){console.error(e);status.textContent='❌ '+(e.message||'Gagal simpan');alert('Gagal simpan muzik.\n\n'+(e.message||'Ralat tidak diketahui'));}
+  }catch(e){
+    console.error('saveProfileMusic error:',e);
+    status.textContent='❌ '+(e.message||'Gagal simpan');
+    alert('Gagal simpan muzik.\n\n'+(e.message||'Ralat tidak diketahui'));
+  }
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const v=document.getElementById('profileMusicVolume'); if(v)v.addEventListener('input',updateProfileMusicVolumeLabel);
