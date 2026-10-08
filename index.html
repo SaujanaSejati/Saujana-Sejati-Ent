@@ -359,7 +359,10 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 .hp-active{background:#08a05a;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;display:inline-block;margin-top:6px}
 @media(max-width:650px){.hp-video-row{align-items:flex-start;flex-direction:column}.hp-video-thumb{width:100%;height:180px}.hp-video-actions{width:100%;justify-content:flex-start}}
 </style>
-</head><body><div id="liveNotif"><div class="notif-title">🔔 Booking Baru Masuk!</div><div class="notif-text" id="liveNotifText">Ada booking baru dari website Customer.</div></div>
+<style id="profile-music-admin-css">
+#profileMusic .project-item{background:#fff;border:1px solid #ddd;border-radius:12px;padding:18px;box-shadow:0 3px 12px #00000010}
+@media(max-width:700px){#profileMusic .project-item>div:first-of-type{grid-template-columns:1fr!important}}
+</style></head><body><div id="liveNotif"><div class="notif-title">🔔 Booking Baru Masuk!</div><div class="notif-text" id="liveNotifText">Ada booking baru dari website Customer.</div></div>
 
 
 <aside class="admin-sidebar">
@@ -382,7 +385,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
   <button data-side="reports" onclick="showScreen('reports')">📊 <span>Laporan</span></button>
   <button data-side="feedback" onclick="showScreen('feedback')">💬 <span>Maklum Balas Website</span><span id="sideFeedbackBadge" class="side-badge" style="display:none">0</span></button>
   <div class="side-group">LAMAN WEB</div>
-  <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button>
+  <button data-side="videoHome" onclick="showScreen('videoHome')">🎬 <span>Video Homepage</span></button><button data-side="profileMusic" onclick="showScreen('profileMusic')">🎵 <span>Muzik Profil</span></button>
   <div class="side-group">PENGURUSAN</div>
   <button data-side="agents" onclick="showScreen('agents')">👥 <span>Pengurusan Agent</span></button>
   <div class="side-foot">“Rumah Lebih Selesa,<br>Hidup Lebih Bahagia”</div>
@@ -418,6 +421,38 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 </div>
 <div id="realtimeStatus" style="padding:0 14px 10px;font-size:12px;color:#68707b">🔄 Menyambung notifikasi booking...</div><div id="websiteBookings" class="booking-list"><div class="booking-empty">Memuatkan booking...</div></div>
 </div></div></div></section>
+
+<section id="profileMusic" class="screen">
+<div class="wrap">
+  <div class="section-title"><div><h2>🎵 Muzik Profil Customer</h2><div class="muted">Kawal lagu yang dimainkan di halaman Profil Hairi pada website Customer.</div></div></div>
+  <div class="project-item" style="max-width:850px">
+    <h3 style="margin-top:0">🎧 Tetapan Muzik</h3>
+    <div id="profileMusicCurrent" class="muted" style="margin-bottom:14px">Memuatkan tetapan...</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <label style="font-weight:800">Nama Lagu
+        <input id="profileMusicTitle" type="text" placeholder="Contoh: Home & Harmony" style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid #bbb;border-radius:8px">
+      </label>
+      <label style="font-weight:800">Fail Lagu (MP3 / WAV / M4A)
+        <input id="profileMusicFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a" style="display:block;width:100%;margin-top:5px;padding:9px;border:1px solid #bbb;border-radius:8px">
+      </label>
+    </div>
+    <div style="margin-top:18px;padding:15px;border:1px solid #ddd;border-radius:12px;background:#fafafa">
+      <label style="font-weight:900;display:block">🔊 Volume: <span id="profileMusicVolumeValue">25%</span></label>
+      <input id="profileMusicVolume" type="range" min="0" max="100" value="25" style="width:100%;margin-top:10px;accent-color:#e50914">
+    </div>
+    <label style="display:flex;align-items:center;gap:9px;margin-top:15px;font-weight:900">
+      <input id="profileMusicActive" type="checkbox" style="width:20px;height:20px"> 🟢 Aktifkan muzik di Profil Customer
+    </label>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:16px">
+      <button class="btn" style="background:#1477df" onclick="previewProfileMusic()">▶️ Test Muzik</button>
+      <button class="btn green" onclick="saveProfileMusic()">💾 Simpan Tetapan</button>
+      <button class="btn" style="background:#555" onclick="showScreen('dashboard')">Kembali</button>
+    </div>
+    <audio id="profileMusicPreview" controls preload="none" style="width:100%;margin-top:15px;display:none"></audio>
+    <div id="profileMusicStatus" class="muted" style="margin-top:10px"></div>
+  </div>
+</div>
+</section>
 
 <section id="agents" class="screen">
 <div class="wrap">
@@ -2466,7 +2501,74 @@ setTimeout(()=>{
   const btn=document.getElementById('enableNotifBtn');
   if(btn && 'Notification' in window && Notification.permission==='granted') btn.textContent='🔔 Notifikasi Aktif';
 },800);
-</script><script>
+</script><script id="profile-music-admin-js">
+let profileMusicAdminData=null;
+async function loadProfileMusicSettings(){
+  const box=document.getElementById('profileMusicCurrent'); if(!box)return;
+  try{
+    const {data,error}=await supabaseClient.from('profile_music_settings').select('*').order('updated_at',{ascending:false}).limit(1).maybeSingle();
+    if(error)throw error;
+    profileMusicAdminData=data||null;
+    if(data){
+      document.getElementById('profileMusicTitle').value=data.title||'';
+      document.getElementById('profileMusicVolume').value=Number(data.volume??25);
+      document.getElementById('profileMusicVolumeValue').textContent=Number(data.volume??25)+'%';
+      document.getElementById('profileMusicActive').checked=!!data.is_active;
+      box.innerHTML=data.storage_path?'🎵 <b>'+esc(data.title||'Muzik Profil')+'</b><br><span class="muted">Fail: '+esc(data.storage_path)+'</span>':'Belum ada fail lagu. Sila upload lagu.';
+    }else box.textContent='Belum ada tetapan muzik.';
+  }catch(e){box.innerHTML='<span style="color:#d51b22;font-weight:800">❌ '+esc(e.message)+'</span>';}
+}
+function updateProfileMusicVolumeLabel(){const el=document.getElementById('profileMusicVolume');const out=document.getElementById('profileMusicVolumeValue');if(el&&out)out.textContent=el.value+'%';}
+async function previewProfileMusic(){
+  const file=document.getElementById('profileMusicFile')?.files?.[0], audio=document.getElementById('profileMusicPreview'), vol=document.getElementById('profileMusicVolume');
+  if(!audio)return;
+  audio.volume=Number(vol?.value||25)/100;
+  if(file)audio.src=URL.createObjectURL(file);
+  else if(profileMusicAdminData?.storage_path)audio.src=supabaseClient.storage.from('profile-music').getPublicUrl(profileMusicAdminData.storage_path).data.publicUrl;
+  else {alert('Sila pilih fail lagu dahulu.');return;}
+  audio.style.display='block'; audio.play().catch(()=>{});
+}
+async function saveProfileMusic(){
+  const title=(document.getElementById('profileMusicTitle')?.value||'Home & Harmony').trim();
+  const file=document.getElementById('profileMusicFile')?.files?.[0];
+  const active=!!document.getElementById('profileMusicActive')?.checked;
+  const volume=Number(document.getElementById('profileMusicVolume')?.value||25);
+  const status=document.getElementById('profileMusicStatus');
+  if(!title){alert('Sila masukkan nama lagu.');return;}
+  if(file && file.size>15*1024*1024){alert('Fail terlalu besar. Sila guna fail audio di bawah 15MB.');return;}
+  try{
+    status.textContent='⏳ Menyimpan...';
+    let storagePath=profileMusicAdminData?.storage_path||null;
+    if(file){
+      const ext=(file.name.split('.').pop()||'mp3').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp3';
+      storagePath='profile/'+crypto.randomUUID()+'.'+ext;
+      const {error:uploadError}=await supabaseClient.storage.from('profile-music').upload(storagePath,file,{contentType:file.type||'audio/mpeg',upsert:false});
+      if(uploadError)throw uploadError;
+    }
+    if(!storagePath){alert('Sila upload fail lagu dahulu.');status.textContent='';return;}
+    if(active){
+      const {error:deactivateError}=await supabaseClient.from('profile_music_settings').update({is_active:false}).neq('id',profileMusicAdminData?.id||'00000000-0000-0000-0000-000000000000');
+      if(deactivateError)throw deactivateError;
+    }
+    let rowId=profileMusicAdminData?.id;
+    let result;
+    if(rowId){
+      result=await supabaseClient.from('profile_music_settings').update({title,storage_path:storagePath,is_active:active,volume,updated_at:new Date().toISOString()}).eq('id',rowId);
+    }else{
+      result=await supabaseClient.from('profile_music_settings').insert([{title,storage_path:storagePath,is_active:active,volume}]);
+    }
+    if(result.error)throw result.error;
+    alert('Tetapan muzik berjaya disimpan. 🎵');
+    await loadProfileMusicSettings();
+    status.textContent='✅ Disimpan. Customer Profile akan menggunakan tetapan ini.';
+  }catch(e){console.error(e);status.textContent='❌ '+(e.message||'Gagal simpan');alert('Gagal simpan muzik.\n\n'+(e.message||'Ralat tidak diketahui'));}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const v=document.getElementById('profileMusicVolume'); if(v)v.addEventListener('input',updateProfileMusicVolumeLabel);
+  loadProfileMusicSettings();
+});
+</script>
+<script>
 async function loadHomepageVideos(){
   const list=document.getElementById('homepageVideoList');
   if(!list)return;
