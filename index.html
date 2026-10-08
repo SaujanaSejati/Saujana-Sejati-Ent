@@ -537,9 +537,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 </div>
 </section>
 
-<section id="feedback" class="screen"><div class="wrap"><div class="section-title"><div><h2>Maklum Balas Website</h2><div class="muted">Semak penilaian pengguna dan kenal pasti kelemahan website.</div></div><a class="btn" style="background:#222;color:#fff;text-decoration:none" href="feedback-admin.html" target="_blank" rel="noopener">Buka Paparan Penuh ↗</a></div><div style="background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden;min-height:650px"><iframe src="feedback-admin.html" title="Maklum Balas Website Admin" style="display:block;width:100%;height:760px;border:0" loading="lazy"></iframe></div></div></section>
-
-</main><footer><img class="footer-logo" src="logo-saujana-sejati.jpg"><p>“Rumah Lebih Selesa, Hidup Lebih Bahagia”</p></footer>
+<section id="feedback" class="screen"><div class="wrap"><div class="section-title"><div><h2>Maklum Balas Website</h2><div class="muted">Semak penilaian pengguna dan rating pelanggan.</div></div></div><div id="adminFeedbackInline" style="background:#fff;border:1px solid #d8dde2;border-radius:13px;padding:16px;box-shadow:0 4px 16px #00000008"><div style="padding:14px;background:#fff4d4;border-radius:9px">⏳ Memuatkan maklum balas...</div></div></div></section></main><footer><img class="footer-logo" src="logo-saujana-sejati.jpg"><p>“Rumah Lebih Selesa, Hidup Lebih Bahagia”</p></footer>
 <nav>
 <button id="navHome" class="active" onclick="showScreen('home')"><span class="navico">⌂</span>Home</button>
 <button id="navBookings" onclick="showScreen('bookings')"><span class="navico">📋</span>Booking Baru</button>
@@ -1993,7 +1991,23 @@ function exportAnnualRecordsExcel(){
     '<tr><td class="spacer" colspan="7"></td></tr>'+
     '<tr class="data-head">'+headers+'</tr>'+tableRows+
     '<tr><td class="foot" colspan="7">Dokumen dijana secara automatik daripada sistem rekod Saujana Sejati Ent.</td></tr>'+
-    '</table></body></html>';
+    '</table><script>
+window.loadInlineFeedback=async function(){
+ const el=document.getElementById('adminFeedbackInline');if(!el)return;
+ if(!currentAuth){el.innerHTML='<div style="padding:14px;background:#fff4d4;border-radius:9px">🔐 Sila log masuk Admin semula.</div>';return;}
+ el.innerHTML='<div style="padding:14px;background:#eef6ff;border-radius:9px">⏳ Menyemak akses Admin...</div>';
+ try{
+  const p=await supabaseClient.from('admin_profiles').select('name,role,active').eq('id',currentAuth.user.id).maybeSingle();
+  if(p.error)throw p.error;
+  if(!p.data?.active||!['owner','manager'].includes(p.data.role)){el.innerHTML='<div style="padding:14px;background:#ffe8e8;color:#b3261e;border-radius:9px;font-weight:800">❌ Akses ditolak.</div>';return;}
+  const r=await supabaseClient.from('website_feedback').select('id,full_name,phone,rating,reasons,explanation,created_at,admin_reply').order('created_at',{ascending:false}).limit(500);
+  if(r.error)throw r.error;
+  const rows=r.data||[],avg=rows.length?(rows.reduce((a,x)=>a+Number(x.rating||0),0)/rows.length).toFixed(1):'—';
+  const cards=rows.map(x=>'<div style="border:1px solid #ddd;border-radius:10px;padding:13px;margin:9px 0"><div style="font-size:20px">'+('⭐'.repeat(Number(x.rating)||0))+' <b>'+Number(x.rating||0)+'/5</b></div><b>'+String(x.full_name||'Pengunjung').replace(/[<>&]/g,'')+'</b><div class="muted">'+new Date(x.created_at).toLocaleString('ms-MY')+'</div>'+(x.reasons?.length?'<p>'+x.reasons.map(q=>String(q).replace(/[<>&]/g,'')).join(' · ')+'</p>':'')+(x.explanation?'<p>'+String(x.explanation).replace(/[<>&]/g,'')+'</p>':'')+(x.admin_reply?'<div style="background:#f7f7f7;border-left:4px solid #e50914;padding:9px"><b>↩️ Balasan</b><br>'+String(x.admin_reply).replace(/[<>&]/g,'')+'</div>':'')+'</div>').join('');
+  el.innerHTML='<div class="dash-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="dash-stat"><div class="muted">Jumlah Maklum Balas</div><div class="n">'+rows.length+'</div></div><div class="dash-stat"><div class="muted">Purata</div><div class="n">'+avg+'/5</div></div><div class="dash-stat"><div class="muted">Markah Rendah</div><div class="n">'+rows.filter(x=>Number(x.rating)<=3).length+'</div></div></div><h3>💬 Maklum Balas Orang Awam</h3>'+(cards||'<p>Belum ada maklum balas.</p>');
+ }catch(e){console.error(e);el.innerHTML='<div style="padding:14px;background:#ffe8e8;color:#b3261e;border-radius:9px"><b>❌ Gagal memuatkan data.</b><br>'+String(e.message||e)+'</div>';}
+};
+</script></body></html>';
   const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
