@@ -584,6 +584,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
 <button id="navReports" onclick="showScreen('reports')"><span class="navico">▤</span>Laporan</button>
 <button id="navFeedback" onclick="showScreen('feedback')"><span class="navico">💬</span>Maklum Balas</button>
 <button id="navAgents" onclick="showScreen('agents')"><span class="navico">👥</span>Agent</button>
+<button id="navProfileMusic" onclick="showScreen('profileMusic')"><span class="navico">🎵</span>Muzik Profil</button>
 </nav>
  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -593,7 +594,7 @@ const SUPABASE_PUBLISHABLE_KEY="sb_publishable_F_JX1g6axQQBZUJTVRCqUA_fEc5YsA2";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 window.__saujanaSupabaseClient=supabaseClient;
 let websiteBookings=[];
-const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',feedback:'navFeedback',agents:'navAgents'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
+const navIds={home:'navHome',catalog:'navCatalog',quote:'navQuote',projects:'navProjects',bookings:'navBookings',dashboard:'navDashboard',reports:'navReports',feedback:'navFeedback',agents:'navAgents',profileMusic:'navProfileMusic'};const money=n=>'RM '+Number(n||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});const v=id=>parseFloat(document.getElementById(id).value)||0;const ids=['lowerL','lowerR','upperL','upperR','tvW','tvH','tvR','wardW','wardH','wardR','deposit'];
 function showScreen(id){
   if(id==='feedback'){setTimeout(()=>{if(typeof loadInlineFeedback==='function')loadInlineFeedback();},0);
     try{localStorage.setItem('saujanaFeedbackLastReadAt',new Date().toISOString());}catch(e){}
@@ -602,7 +603,7 @@ function showScreen(id){
   const restrictedAgentScreens=['agents','reports','videoHome','profileMusic'];
   if(window.currentUserRole==='agent'){
     ['reports','videoHome','agents','profileMusic'].forEach(key=>{
-      document.querySelectorAll('[data-side="'+key+'"],#navReports,#navAgents').forEach(el=>el.style.display='none');
+      document.querySelectorAll('[data-side="'+key+'"],#navReports,#navAgents,#navProfileMusic').forEach(el=>el.style.display='none');
     });
     if(restrictedAgentScreens.includes(id)){
       alert('Akses terhad: Menu ini hanya boleh diurus oleh Admin.');
