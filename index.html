@@ -1978,6 +1978,7 @@ function renderAnnualRecords(){
 async function exportAnnualRecordsExcel(){
   if(window.currentUserRole!=='admin'){alert('Akses ditolak: Laporan hanya boleh diakses oleh Admin.');return;}
   renderAnnualRecords();
+
   const year=document.getElementById('annualReportYear')?.value||String(new Date().getFullYear());
   const monthSelect=document.getElementById('annualReportMonth');
   const monthLabel=monthSelect?.selectedOptions?.[0]?.textContent||'Semua Bulan';
@@ -1985,85 +1986,161 @@ async function exportAnnualRecordsExcel(){
   const sales=document.getElementById('annualSales')?.textContent||'RM 0.00';
   const deposit=document.getElementById('annualDeposit')?.textContent||'RM 0.00';
   const sourceTable=document.querySelector('#annualReportList table');
+
   if(!sourceTable){alert('Tiada rekod untuk dieksport bagi pilihan ini.');return;}
   if(!window.ExcelJS){alert('Komponen Excel belum siap. Sila refresh halaman dan cuba semula.');return;}
+
   const safeText=s=>String(s??'').trim();
   const rows=Array.from(sourceTable.querySelectorAll('tr'));
   const header=rows.shift();
   const dataRows=rows.map(tr=>Array.from(tr.children).map(td=>safeText(td.textContent)));
   const headers=Array.from(header.children).map(th=>safeText(th.textContent));
   const exportDate=new Date().toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'});
+
   try{
     const wb=new ExcelJS.Workbook();
     wb.creator='Saujana Sejati Ent';
     wb.company='Saujana Sejati Enterprise';
     wb.created=new Date();
+
     const ws=wb.addWorksheet('Rekod '+year,{views:[{showGridLines:false}]});
 
-    ws.mergeCells('A1:G1');
-    ws.getCell('A1').value='SAUJANA SEJATI ENTERPRISE';
-    ws.getCell('A1').font={name:'Arial',size:18,bold:true,color:{argb:'FFFFFFFF'}};
-    ws.getCell('A1').alignment={vertical:'middle',horizontal:'left'};
-    ws.getRow(1).height=30;
-    ws.mergeCells('A2:G2');
-    ws.getCell('A2').value='CUSTOM CABINET & INTERIOR';
-    ws.getCell('A2').font={name:'Arial',size:10,bold:true,color:{argb:'FFDCE6F2'}};
-    ws.getCell('A2').alignment={vertical:'middle',horizontal:'left'};
+    // HEADER — kekalkan rupa laporan lama, cuma logo sebenar dimasukkan ke kiri.
+    ws.getColumn(1).width=17;
+    ws.getColumn(2).width=27;
+    ws.getColumn(3).width=24;
+    ws.getColumn(4).width=18;
+    ws.getColumn(5).width=18;
+    ws.getColumn(6).width=18;
+    ws.getColumn(7).width=18;
+
+    ws.getRow(1).height=72;
+    ws.mergeCells('B1:G1');
+    ws.getCell('B1').value='SAUJANA SEJATI ENTERPRISE';
+    ws.getCell('B1').font={name:'Arial',size:20,bold:true,color:{argb:'FFFFFFFF'}};
+    ws.getCell('B1').alignment={vertical:'middle',horizontal:'left'};
+    ws.getCell('B1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF17365D'}};
+
+    ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}};
+    ws.getCell('A1').border={right:{style:'thick',color:{argb:'FFD71920'}}};
+
+    for(let col=2;col<=7;col++){
+      ws.getCell(1,col).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF17365D'}};
+      ws.getCell(1,col).border={bottom:{style:'medium',color:{argb:'FFD71920'}}};
+    }
+
+    ws.getCell('B1').value='SAUJANA SEJATI ENTERPRISE';
+    ws.getCell('B1').alignment={vertical:'middle',horizontal:'left'};
+
+    // Tagline pada baris kedua visual, tanpa menambah layout yang berserabut.
     ws.getRow(2).height=20;
-    ws.mergeCells('A3:G3');
-    ws.getCell('A3').value='LAPORAN REKOD TAHUNAN '+safeText(year);
-    ws.getCell('A3').font={name:'Arial',size:15,bold:true,color:{argb:'FF172B4D'}};
-    ws.getCell('A3').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F3F7'}};
-    ws.getCell('A3').alignment={vertical:'middle'};
-    ws.getRow(3).height=26;
-    ws.mergeCells('A4:G4');
-    ws.getCell('A4').value='Tempoh: '+monthLabel+'  |  Tarikh eksport: '+exportDate;
-    ws.getCell('A4').font={name:'Arial',size:9,color:{argb:'FF596579'}};
-    ws.getRow(4).height=20;
+    ws.mergeCells('B2:G2');
+    ws.getCell('B2').value='CUSTOM CABINET & INTERIOR';
+    ws.getCell('B2').font={name:'Arial',size:10,bold:true,color:{argb:'FFDCE6F2'}};
+    ws.getCell('B2').alignment={vertical:'middle',horizontal:'left'};
+    for(let col=2;col<=7;col++){
+      ws.getCell(2,col).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF17365D'}};
+      ws.getCell(2,col).border={bottom:{style:'medium',color:{argb:'FFD71920'}}};
+    }
 
-    ws.mergeCells('A6:B6'); ws.mergeCells('C6:D6'); ws.mergeCells('E6:G6');
-    ws.getCell('A6').value='JUMLAH REKOD';
-    ws.getCell('C6').value='JUMLAH JUALAN';
-    ws.getCell('E6').value='JUMLAH DEPOSIT';
-    ['A6','C6','E6'].forEach(a=>{const cell=ws.getCell(a);cell.font={bold:true,color:{argb:'FF40516A'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE9EEF5'}};cell.alignment={horizontal:'center'};});
-    ws.mergeCells('A7:B7'); ws.mergeCells('C7:D7'); ws.mergeCells('E7:G7');
-    ws.getCell('A7').value=safeText(count);
-    ws.getCell('C7').value=safeText(sales);
-    ws.getCell('E7').value=safeText(deposit);
-    ['A7','C7','E7'].forEach(a=>{const cell=ws.getCell(a);cell.font={bold:true,size:13,color:{argb:'FF172B4D'}};cell.alignment={horizontal:'center'};});
-
-    const headRow=ws.getRow(9);
-    headers.forEach((h,i)=>{const cell=headRow.getCell(i+1);cell.value=h;cell.font={bold:true,color:{argb:'FFFFFFFF'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF243F66'}};cell.alignment={horizontal:i>=4?'right':'left',vertical:'middle'};});
-    headRow.height=24;
-    dataRows.forEach((vals,ri)=>{
-      const row=ws.getRow(10+ri);
-      vals.forEach((v,ci)=>{const cell=row.getCell(ci+1);cell.value=v;cell.alignment={horizontal:ci>=4?'right':'left',vertical:'middle'};if(ri%2===1)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F7FB'}};});
-    });
-
-    const widths=[20,28,30,18,18,18,18];
-    widths.forEach((w,i)=>ws.getColumn(i+1).width=w);
-    for(let r=9;r<=9+dataRows.length;r++){for(let col=1;col<=7;col++){ws.getCell(r,col).border={top:{style:'thin',color:{argb:'FFD8DEE8'}},left:{style:'thin',color:{argb:'FFD8DEE8'}},bottom:{style:'thin',color:{argb:'FFD8DEE8'}},right:{style:'thin',color:{argb:'FFD8DEE8'}}};}}
-
+    // Logo embedded terus dalam XLSX supaya tidak hilang bila dibuka di telefon/Excel.
     const logo=document.querySelector('.admin-sidebar .brand img')||document.querySelector('.top .logo');
     if(logo){
       try{
         const response=await fetch(logo.currentSrc||logo.src,{cache:'no-store'});
         if(response.ok){
           const blob=await response.blob();
-          const base64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(String(fr.result).split(',')[1]);fr.onerror=reject;fr.readAsDataURL(blob);});
+          const base64=await new Promise((resolve,reject)=>{
+            const fr=new FileReader();
+            fr.onload=()=>resolve(String(fr.result).split(',')[1]);
+            fr.onerror=reject;
+            fr.readAsDataURL(blob);
+          });
           const imageId=wb.addImage({base64,extension:'jpeg'});
-          ws.addImage(imageId,{tl:{col:0.15,row:0.12},ext:{width:115,height:70}});
-          ws.getRow(1).height=32; ws.getRow(2).height=24;
-          ws.getCell('A1').alignment={vertical:'middle',horizontal:'left',indent:5};
-          ws.getCell('A2').alignment={vertical:'middle',horizontal:'left',indent:5};
+          ws.addImage(imageId,{tl:{col:0.12,row:0.10},ext:{width:105,height:62}});
         }
-      }catch(imgErr){console.warn('Logo Excel tidak dapat dimasukkan:',imgErr);}
+      }catch(imgErr){
+        console.warn('Logo Excel tidak dapat dimasukkan:',imgErr);
+      }
     }
-    // A1:G1 dan A2:G2 telah digabungkan di atas.
-    // Jangan gabungkan A1:G2 kerana ia bertindih dengan merged cells sedia ada.
-    ws.mergeCells(11+dataRows.length,1,11+dataRows.length,7);
-    ws.getCell(11+dataRows.length,1).value='Dokumen dijana secara automatik daripada sistem rekod Saujana Sejati Ent.';
-    ws.getCell(11+dataRows.length,1).font={name:'Arial',size:9,color:{argb:'FF667085'}};
+
+    // Tajuk laporan — rupa lama dikekalkan.
+    ws.mergeCells('A4:G4');
+    ws.getCell('A4').value='LAPORAN REKOD TAHUNAN '+safeText(year);
+    ws.getCell('A4').font={name:'Arial',size:15,bold:true,color:{argb:'FF172B4D'}};
+    ws.getCell('A4').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F3F7'}};
+    ws.getCell('A4').alignment={vertical:'middle',horizontal:'left'};
+    ws.getRow(4).height=26;
+    ws.getCell('A4').border={bottom:{style:'medium',color:{argb:'FFD71920'}}};
+
+    ws.mergeCells('A5:G5');
+    ws.getCell('A5').value='Tempoh: '+monthLabel+'  |  Tarikh eksport: '+exportDate;
+    ws.getCell('A5').font={name:'Arial',size:9,color:{argb:'FF596579'}};
+    ws.getCell('A5').alignment={vertical:'middle',horizontal:'left'};
+    ws.getRow(5).height=20;
+
+    ws.getRow(6).height=10;
+
+    // Ringkasan.
+    ws.mergeCells('A7:B7');
+    ws.mergeCells('C7:D7');
+    ws.mergeCells('E7:G7');
+    ws.getCell('A7').value='JUMLAH REKOD';
+    ws.getCell('C7').value='JUMLAH JUALAN';
+    ws.getCell('E7').value='JUMLAH DEPOSIT';
+
+    ['A7','C7','E7'].forEach(a=>{
+      const cell=ws.getCell(a);
+      cell.font={name:'Arial',size:10,bold:true,color:{argb:'FF40516A'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE9EEF5'}};
+      cell.alignment={horizontal:'left',vertical:'middle'};
+      cell.border={top:{style:'thin',color:{argb:'FFD5DCE6'}},left:{style:'thin',color:{argb:'FFD5DCE6'}},bottom:{style:'thin',color:{argb:'FFD5DCE6'}},right:{style:'thin',color:{argb:'FFD5DCE6'}}};
+    });
+
+    ws.getRow(8).height=24;
+    ws.mergeCells('A8:B8');
+    ws.mergeCells('C8:D8');
+    ws.mergeCells('E8:G8');
+    ws.getCell('A8').value=safeText(count);
+    ws.getCell('C8').value=safeText(sales);
+    ws.getCell('E8').value=safeText(deposit);
+    ['A8','C8','E8'].forEach(a=>{
+      const cell=ws.getCell(a);
+      cell.font={name:'Arial',size:13,bold:true,color:{argb:'FF172B4D'}};
+      cell.alignment={horizontal:'left',vertical:'middle'};
+      cell.border={top:{style:'thin',color:{argb:'FFD5DCE6'}},left:{style:'thin',color:{argb:'FFD5DCE6'}},bottom:{style:'thin',color:{argb:'FFD5DCE6'}},right:{style:'thin',color:{argb:'FFD5DCE6'}}};
+    });
+
+    ws.getRow(9).height=10;
+
+    // Jadual rekod.
+    const headRow=ws.getRow(10);
+    headers.forEach((h,i)=>{
+      const cell=headRow.getCell(i+1);
+      cell.value=h;
+      cell.font={name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF243F66'}};
+      cell.alignment={horizontal:i>=4?'right':'left',vertical:'middle',wrapText:true};
+      cell.border={top:{style:'thin',color:{argb:'FF1B3151'}},left:{style:'thin',color:{argb:'FF1B3151'}},bottom:{style:'thin',color:{argb:'FF1B3151'}},right:{style:'thin',color:{argb:'FF1B3151'}}};
+    });
+
+    dataRows.forEach((vals,ri)=>{
+      const row=ws.getRow(11+ri);
+      row.height=20;
+      vals.forEach((v,ci)=>{
+        const cell=row.getCell(ci+1);
+        cell.value=v;
+        cell.font={name:'Arial',size:10,color:{argb:'FF202A35'}};
+        cell.alignment={horizontal:ci>=4?'right':'left',vertical:'middle',wrapText:true};
+        if(ri%2===1)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F7FB'}};
+        cell.border={top:{style:'thin',color:{argb:'FFD8DEE8'}},left:{style:'thin',color:{argb:'FFD8DEE8'}},bottom:{style:'thin',color:{argb:'FFD8DEE8'}},right:{style:'thin',color:{argb:'FFD8DEE8'}}};
+      });
+    });
+
+    const footRow=11+dataRows.length;
+    ws.mergeCells(footRow,1,footRow,7);
+    ws.getCell(footRow,1).value='Dokumen dijana secara automatik daripada sistem rekod Saujana Sejati Ent.';
+    ws.getCell(footRow,1).font={name:'Arial',size:9,color:{argb:'FF667085'}};
 
     const buffer=await wb.xlsx.writeBuffer();
     const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -2071,7 +2148,9 @@ async function exportAnnualRecordsExcel(){
     const a=document.createElement('a');
     a.href=url;
     a.download='Rekod_Saujana_Sejati_'+year+(monthSelect&&monthSelect.value!=='all'?'_'+monthSelect.value:'')+'.xlsx';
-    document.body.appendChild(a);a.click();a.remove();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
   }catch(e){
     console.error('Excel export error:',e);
