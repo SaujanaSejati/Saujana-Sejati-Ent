@@ -2572,13 +2572,17 @@ window.loadInlineFeedback=async function(){
   const p=await supabaseClient.from('admin_profiles').select('name,role,active').eq('id',currentAuth.user.id).maybeSingle();
   if(p.error)throw p.error;
   if(!p.data?.active||!['owner','manager'].includes(p.data.role)){el.innerHTML='<div style="padding:14px;background:#ffe8e8;color:#b3261e;border-radius:9px;font-weight:800">❌ Akses ditolak.</div>';return;}
-  const [fbRes,rvRes]=await Promise.all([
-   supabaseClient.from('website_feedback').select('id,full_name,phone,rating,ease_of_use,reasons,explanation,created_at,admin_reply,admin_replied_at,admin_replied_by').order('created_at',{ascending:false}).limit(500),
-   supabaseClient.from('customer_reviews').select('*').order('created_at',{ascending:false}).limit(500)
+  const [fbRes,rvRes,agentRes]=await Promise.all([
+   supabaseClient.from('website_feedback').select('id,full_name,phone,rating,ease_of_use,reasons,explanation,created_at,admin_reply,admin_replied_at,admin_replied_by,agent_slug').order('created_at',{ascending:false}).limit(500),
+   supabaseClient.from('customer_reviews').select('*').order('created_at',{ascending:false}).limit(500),
+   supabaseClient.from('agents').select('slug,name,active')
   ]);
   if(fbRes.error)throw fbRes.error;
   if(rvRes.error)throw rvRes.error;
+  if(agentRes.error)console.warn('Senarai PIC gagal dimuatkan:',agentRes.error);
   const rows=fbRes.data||[],reviews=rvRes.data||[];
+  const agentMap=Object.fromEntries((agentRes.data||[]).filter(a=>a.active!==false).map(a=>[String(a.slug||'').toLowerCase(),String(a.name||a.slug||'').trim()]));
+  const defaultPic=String(p.data?.name||'Hairi').trim()||'Hairi';
   const avg=rows.length?(rows.reduce((a,x)=>a+Number(x.rating||0),0)/rows.length).toFixed(1):'—';
   const btn=(label,fn,style)=>'<button type="button" onclick="'+fn+'" style="border:0;border-radius:7px;padding:8px 10px;color:#fff;font-weight:900;cursor:pointer;background:'+style+'">'+label+'</button>';
   const cards=rows.map(x=>{
@@ -2586,7 +2590,7 @@ window.loadInlineFeedback=async function(){
     const reply=String(x.admin_reply||'');
     return '<article style="border:1px solid #ddd;border-radius:12px;padding:14px;margin:10px 0;background:#fff">'+
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">'+
-      '<div><div style="font-size:20px">'+('⭐'.repeat(Math.min(5,Math.max(0,Number(x.rating)||0)))+' <b>'+Number(x.rating||0)+'/5</b>')+'</div><b style="font-size:17px">'+esc(x.full_name||'Pengunjung')+'</b><div class="muted">'+new Date(x.created_at).toLocaleString('ms-MY')+(phone?' · '+esc(phone):'')+'</div></div>'+
+      '<div><div style="font-size:20px">'+('⭐'.repeat(Math.min(5,Math.max(0,Number(x.rating)||0)))+' <b>'+Number(x.rating||0)+'/5</b>')+'</div><b data-feedback-name="'+escAttr(x.id)+'" style="font-size:17px">'+esc(x.full_name||'Pengunjung')+'</b><div class="muted">'+new Date(x.created_at).toLocaleString('ms-MY')+(phone?' · '+esc(phone):'')+(x.agent_slug?' · PIC: '+esc(agentMap[String(x.agent_slug).toLowerCase()]||x.agent_slug):'')+'</div></div>'+
       '<span style="background:'+(reply?'#eaf7ef':'#fff4d4')+';color:'+(reply?'#087f45':'#8b5c00')+';padding:5px 9px;border-radius:999px;font-size:12px;font-weight:900">'+(reply?'✓ SUDAH DIBALAS':'⏳ BELUM DIBALAS')+'</span></div>'+
       (x.ease_of_use?'<div style="margin-top:8px"><b>Kemudahan:</b> '+esc(x.ease_of_use)+'</div>':'')+
       (x.reasons?.length?'<div style="margin-top:6px"><b>Sebab:</b> '+x.reasons.map(esc).join(' · ')+'</div>':'')+
@@ -2594,7 +2598,7 @@ window.loadInlineFeedback=async function(){
       '<div style="margin-top:10px"><label style="font-weight:900;display:block;margin-bottom:5px">↩️ Balasan Saujana Sejati</label><textarea id="fbReply_'+escAttr(x.id)+'" style="width:100%;min-height:75px;border:1px solid #cfd6dd;border-radius:8px;padding:9px;resize:vertical">'+esc(reply)+'</textarea></div>'+
       (reply?'<div style="margin-top:8px;background:#f7f7f7;border-left:4px solid #e50914;padding:9px"><b>Balasan dipaparkan kepada customer</b><br>'+esc(reply)+(x.admin_replied_at?'<div class="muted" style="margin-top:4px">'+new Date(x.admin_replied_at).toLocaleString('ms-MY')+'</div>':'')+'</div>':'')+
       '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+
-      btn('🤖 Auto Balas',"inlineAutoReplyFeedback('"+escAttr(x.id)+"','Hairi')",'#8b5c00')+
+      btn('🤖 Auto Balas',"inlineAutoReplyFeedback('"+escAttr(x.id)+"','"+escAttr(agentMap[String(x.agent_slug||'').toLowerCase()]||defaultPic)+"')",'#8b5c00')+
       btn('↩️ Hantar Balasan',"inlineReplyFeedback('"+escAttr(x.id)+"')",'#087f45')+
       (phone?btn('💬 WhatsApp Customer',"inlineFeedbackWhatsApp('"+escAttr(phone)+"')",'#08a05a'):'')+
       btn('✏️ Edit',"inlineEditFeedback('"+escAttr(x.id)+"')",'#126bd6')+
