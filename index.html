@@ -696,20 +696,8 @@ async function loadCatalogAdmin(){
     error=result.error;
     dynamicCatalog=error?[]:(result.data||[]);
     if(!error){
-      const existingLegacy=new Set(dynamicCatalog.map(x=>x.legacy_static_id).filter(Boolean));
-      const seed=staticCatalogRows().filter(x=>!existingLegacy.has(x.id)).map(x=>({
-        name:x.name,category:x.category,description:x.description,image_url:x.image_url,active:true,legacy_static_id:x.id
-      }));
-      if(seed.length){
-        const inserted=await supabaseClient.from('catalog_items').insert(seed);
-        if(!inserted.error){
-          const again=await supabaseClient.from('catalog_items').select('*').order('created_at',{ascending:false});
-          if(!again.error)dynamicCatalog=again.data||dynamicCatalog;
-          else error=again.error;
-        }else{
-          console.warn('Katalog contoh tidak dapat disalin ke database:',inserted.error);
-        }
-      }
+      // Jangan seed semula katalog statik yang telah dipadam Admin.
+      // Database ialah sumber tunggal untuk katalog aktif.
     }
   }catch(e){
     error=e;
@@ -726,8 +714,8 @@ async function loadCatalogAdmin(){
   }
 }
 function catalogRows(){
- const legacyIds=new Set(dynamicCatalog.map(x=>x.legacy_static_id).filter(Boolean));
- return [...dynamicCatalog,...staticCatalogRows().filter(x=>!legacyIds.has(x.id))];
+ // Paparkan hanya rekod yang benar-benar wujud dalam database.
+ return dynamicCatalog;
 }
 function previewCatalogImage(url,title){
   if(!url){alert('Gambar tidak tersedia.');return;}
