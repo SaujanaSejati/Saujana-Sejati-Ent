@@ -2566,16 +2566,95 @@ window.loadInlineFeedback=async function(){
  const el=document.getElementById('adminFeedbackInline');if(!el)return;
  if(!currentAuth){el.innerHTML='<div style="padding:14px;background:#fff4d4;border-radius:9px">🔐 Sila log masuk Admin semula.</div>';return;}
  el.innerHTML='<div style="padding:14px;background:#eef6ff;border-radius:9px">⏳ Memuatkan maklum balas...</div>';
+ const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const escAttr=x=>String(x??'').replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
  try{
   const p=await supabaseClient.from('admin_profiles').select('name,role,active').eq('id',currentAuth.user.id).maybeSingle();
   if(p.error)throw p.error;
   if(!p.data?.active||!['owner','manager'].includes(p.data.role)){el.innerHTML='<div style="padding:14px;background:#ffe8e8;color:#b3261e;border-radius:9px;font-weight:800">❌ Akses ditolak.</div>';return;}
-  const r=await supabaseClient.from('website_feedback').select('id,full_name,phone,rating,reasons,explanation,created_at,admin_reply').order('created_at',{ascending:false}).limit(500);
-  if(r.error)throw r.error;
-  const rows=r.data||[],avg=rows.length?(rows.reduce((a,x)=>a+Number(x.rating||0),0)/rows.length).toFixed(1):'—';
-  const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const cards=rows.map(x=>'<article style="border:1px solid #ddd;border-radius:10px;padding:13px;margin:9px 0"><div style="font-size:20px">'+('⭐'.repeat(Number(x.rating)||0))+' <b>'+Number(x.rating||0)+'/5</b></div><b>'+esc(x.full_name||'Pengunjung')+'</b><div class="muted">'+new Date(x.created_at).toLocaleString('ms-MY')+'</div>'+(x.reasons?.length?'<p>'+x.reasons.map(esc).join(' · ')+'</p>':'')+(x.explanation?'<p>'+esc(x.explanation)+'</p>':'')+(x.admin_reply?'<div style="background:#f7f7f7;border-left:4px solid #e50914;padding:9px"><b>↩️ Balasan</b><br>'+esc(x.admin_reply)+'</div>':'')+'</article>').join('');
-  el.innerHTML='<div class="dash-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="dash-stat"><div class="muted">Jumlah Maklum Balas</div><div class="n">'+rows.length+'</div></div><div class="dash-stat"><div class="muted">Purata</div><div class="n">'+avg+'/5</div></div><div class="dash-stat"><div class="muted">Markah Rendah</div><div class="n">'+rows.filter(x=>Number(x.rating)<=3).length+'</div></div></div><h3>💬 Maklum Balas Orang Awam</h3>'+(cards||'<p>Belum ada maklum balas.</p>');
+  const [fbRes,rvRes]=await Promise.all([
+   supabaseClient.from('website_feedback').select('id,full_name,phone,rating,ease_of_use,reasons,explanation,created_at,admin_reply,admin_replied_at,admin_replied_by').order('created_at',{ascending:false}).limit(500),
+   supabaseClient.from('customer_reviews').select('*').order('created_at',{ascending:false}).limit(500)
+  ]);
+  if(fbRes.error)throw fbRes.error;
+  if(rvRes.error)throw rvRes.error;
+  const rows=fbRes.data||[],reviews=rvRes.data||[];
+  const avg=rows.length?(rows.reduce((a,x)=>a+Number(x.rating||0),0)/rows.length).toFixed(1):'—';
+  const btn=(label,fn,style)=>'<button type="button" onclick="'+fn+'" style="border:0;border-radius:7px;padding:8px 10px;color:#fff;font-weight:900;cursor:pointer;background:'+style+'">'+label+'</button>';
+  const cards=rows.map(x=>{
+    const phone=String(x.phone||'').replace(/[^0-9+]/g,'');
+    const reply=String(x.admin_reply||'');
+    return '<article style="border:1px solid #ddd;border-radius:12px;padding:14px;margin:10px 0;background:#fff">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">'+
+      '<div><div style="font-size:20px">'+('⭐'.repeat(Math.min(5,Math.max(0,Number(x.rating)||0)))+' <b>'+Number(x.rating||0)+'/5</b>')+'</div><b style="font-size:17px">'+esc(x.full_name||'Pengunjung')+'</b><div class="muted">'+new Date(x.created_at).toLocaleString('ms-MY')+(phone?' · '+esc(phone):'')+'</div></div>'+
+      '<span style="background:'+(reply?'#eaf7ef':'#fff4d4')+';color:'+(reply?'#087f45':'#8b5c00')+';padding:5px 9px;border-radius:999px;font-size:12px;font-weight:900">'+(reply?'✓ SUDAH DIBALAS':'⏳ BELUM DIBALAS')+'</span></div>'+
+      (x.ease_of_use?'<div style="margin-top:8px"><b>Kemudahan:</b> '+esc(x.ease_of_use)+'</div>':'')+
+      (x.reasons?.length?'<div style="margin-top:6px"><b>Sebab:</b> '+x.reasons.map(esc).join(' · ')+'</div>':'')+
+      (x.explanation?'<div style="margin-top:8px;background:#f7f8fa;border-radius:8px;padding:10px">'+esc(x.explanation)+'</div>':'')+
+      '<div style="margin-top:10px"><label style="font-weight:900;display:block;margin-bottom:5px">↩️ Balasan Saujana Sejati</label><textarea id="fbReply_'+escAttr(x.id)+'" style="width:100%;min-height:75px;border:1px solid #cfd6dd;border-radius:8px;padding:9px;resize:vertical">'+esc(reply)+'</textarea></div>'+
+      (reply?'<div style="margin-top:8px;background:#f7f7f7;border-left:4px solid #e50914;padding:9px"><b>Balasan dipaparkan kepada customer</b><br>'+esc(reply)+(x.admin_replied_at?'<div class="muted" style="margin-top:4px">'+new Date(x.admin_replied_at).toLocaleString('ms-MY')+'</div>':'')+'</div>':'')+
+      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+
+      btn('↩️ Hantar Balasan',"inlineReplyFeedback('"+escAttr(x.id)+"')",'#087f45')+
+      (phone?btn('💬 WhatsApp Customer',"inlineFeedbackWhatsApp('"+escAttr(phone)+"')",'#08a05a'):'')+
+      btn('✏️ Edit',"inlineEditFeedback('"+escAttr(x.id)+"')",'#126bd6')+
+      btn('🗑️ Padam',"inlineDeleteFeedback('"+escAttr(x.id)+"')",'#555')+
+      '</div></article>';
+  }).join('');
+  const reviewCards=reviews.map(x=>{
+    const status=String(x.status||'pending').toLowerCase();
+    const name=x.customer_name||x.full_name||x.name||'Customer';
+    const comment=x.comment||x.review||x.message||x.explanation||'';
+    return '<article style="border:1px solid #ddd;border-radius:12px;padding:14px;margin:10px 0;background:#fff">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><b>'+esc(name)+'</b><div class="muted">'+new Date(x.created_at||Date.now()).toLocaleString('ms-MY')+'</div></div><span style="font-weight:900">'+esc(status.toUpperCase())+'</span></div>'+
+      (x.rating?'<div style="margin-top:6px">'+('⭐'.repeat(Math.min(5,Number(x.rating)||0)))+'</div>':'')+
+      (comment?'<div style="margin-top:8px;background:#f7f8fa;border-radius:8px;padding:10px">'+esc(comment)+'</div>':'')+
+      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+
+      (status==='approved'?btn('✓ Diluluskan',"inlineReviewStatus('"+escAttr(x.id)+"','approved')",'#087f45'):btn('✓ Luluskan',"inlineReviewStatus('"+escAttr(x.id)+"','approved')",'#087f45'))+
+      (status==='rejected'?btn('✖ Ditolak',"inlineReviewStatus('"+escAttr(x.id)+"','rejected')",'#8b5c00'):btn('✖ Tolak',"inlineReviewStatus('"+escAttr(x.id)+"','rejected')",'#8b5c00'))+
+      btn('⏳ Pending',"inlineReviewStatus('"+escAttr(x.id)+"','pending')",'#126bd6')+
+      btn('🗑️ Padam',"inlineDeleteReview('"+escAttr(x.id)+"')",'#555')+
+      '</div></article>';
+  }).join('');
+  el.innerHTML='<div class="dash-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="dash-stat"><div class="muted">Jumlah Maklum Balas</div><div class="n">'+rows.length+'</div></div><div class="dash-stat"><div class="muted">Purata Rating</div><div class="n">'+avg+'/5</div></div><div class="dash-stat"><div class="muted">Rating 3 Ke Bawah</div><div class="n">'+rows.filter(x=>Number(x.rating)<=3).length+'</div></div></div>'+
+  '<h3 style="margin:20px 0 8px">💬 Maklum Balas Website</h3>'+(cards||'<p class="muted">Belum ada maklum balas.</p>')+
+  '<h3 style="margin:24px 0 8px">⭐ Review / Kepuasan Pelanggan</h3>'+(reviewCards||'<p class="muted">Belum ada review pelanggan.</p>');
  }catch(e){console.error(e);el.innerHTML='<div style="padding:14px;background:#ffe8e8;color:#b3261e;border-radius:9px"><b>❌ Gagal memuatkan data.</b><br>'+esc(e.message||e)+'</div>';}
+};
+window.inlineReplyFeedback=async function(id){
+ const ta=document.getElementById('fbReply_'+id);const reply=ta?.value.trim()||'';
+ if(!reply){alert('Sila tulis balasan dahulu.');return;}
+ if(!currentAuth){alert('Sesi Admin tamat. Sila log masuk semula.');return;}
+ const {error}=await supabaseClient.from('website_feedback').update({admin_reply:reply,admin_replied_at:new Date().toISOString(),admin_replied_by:currentAuth.user.id}).eq('id',id);
+ if(error){alert('❌ Gagal hantar balasan: '+error.message);return;}
+ alert('✅ Balasan berjaya disimpan dan akan dipaparkan kepada customer.');await loadInlineFeedback();updateFeedbackSidebarBadge();
+};
+window.inlineFeedbackWhatsApp=function(phone){
+ const clean=String(phone||'').replace(/\D/g,'');if(!clean){alert('Nombor WhatsApp customer tiada.');return;}
+ const num=clean.startsWith('0')?'60'+clean.slice(1):clean;
+ window.open('https://wa.me/'+num,'_blank','noopener');
+};
+window.inlineEditFeedback=async function(id){
+ const {data,error}=await supabaseClient.from('website_feedback').select('rating,ease_of_use,reasons,explanation').eq('id',id).maybeSingle();
+ if(error||!data){alert('Maklum balas tidak dijumpai.');return;}
+ const rating=prompt('Rating 1-5:',String(data.rating??5));if(rating===null)return;
+ const n=Math.max(1,Math.min(5,Number(rating)||5));
+ const ease=prompt('Kemudahan penggunaan:',data.ease_of_use||'');if(ease===null)return;
+ const explanation=prompt('Komen / penjelasan:',data.explanation||'');if(explanation===null)return;
+ const {error:e}=await supabaseClient.from('website_feedback').update({rating:n,ease_of_use:ease.trim(),explanation:explanation.trim()}).eq('id',id);
+ if(e){alert('❌ Gagal edit: '+e.message);return;}await loadInlineFeedback();alert('✅ Maklum balas berjaya diedit.');
+};
+window.inlineDeleteFeedback=async function(id){
+ if(!confirm('Padam maklum balas ini? Tindakan ini tidak boleh dibatalkan.'))return;
+ const {error}=await supabaseClient.from('website_feedback').delete().eq('id',id);
+ if(error){alert('❌ Gagal padam: '+error.message);return;}await loadInlineFeedback();updateFeedbackSidebarBadge();
+};
+window.inlineReviewStatus=async function(id,status){
+ const {error}=await supabaseClient.from('customer_reviews').update({status}).eq('id',id);
+ if(error){alert('❌ Gagal ubah status review: '+error.message);return;}await loadInlineFeedback();
+};
+window.inlineDeleteReview=async function(id){
+ if(!confirm('Padam review pelanggan ini?'))return;
+ const {error}=await supabaseClient.from('customer_reviews').delete().eq('id',id);
+ if(error){alert('❌ Gagal padam review: '+error.message);return;}await loadInlineFeedback();updateFeedbackSidebarBadge();
 };
 </script></body></html>
