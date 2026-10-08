@@ -2502,7 +2502,7 @@ setTimeout(()=>{
   const btn=document.getElementById('enableNotifBtn');
   if(btn && 'Notification' in window && Notification.permission==='granted') btn.textContent='🔔 Notifikasi Aktif';
 },800);
-</script><script id="profile-music-admin-js">
+</script><script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script><script id="profile-music-admin-js">
 let profileMusicAdminData=null;
 async function loadProfileMusicSettings(){
   const box=document.getElementById('profileMusicCurrent'); if(!box)return;
@@ -2552,36 +2552,36 @@ async function saveProfileMusic(){
     const ext=(file.name.split('.').pop()||'mp3').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp3';
     const storagePath='profile/'+crypto.randomUUID()+'.'+ext;
     const accessToken=sessionData.session.access_token;
-    const uploadUrl=SUPABASE_URL+'/storage/v1/object/profile-music/'+storagePath.split('/').map(encodeURIComponent).join('/');
+    if(!window.tus||!window.tus.Upload)throw new Error('Komponen upload belum dimuatkan. Sila refresh halaman dan cuba semula.');
     await new Promise((resolve,reject)=>{
-      const xhr=new XMLHttpRequest();
-      let finished=false;
-      const fail=(msg)=>{if(finished)return;finished=true;reject(new Error(msg));};
-      xhr.open('POST',uploadUrl,true);
-      xhr.setRequestHeader('apikey',SUPABASE_PUBLISHABLE_KEY);
-      xhr.setRequestHeader('Authorization','Bearer '+accessToken);
-      xhr.setRequestHeader('x-upsert','false');
-      xhr.setRequestHeader('Content-Type',file.type||'audio/mpeg');
-      xhr.timeout=120000;
-      xhr.upload.onprogress=(ev)=>{
-        if(ev.lengthComputable){
-          const pct=Math.min(99,Math.round((ev.loaded/ev.total)*100));
+      const upload=new tus.Upload(file,{
+        endpoint:'https://wvxaiojnxwzcdrczbdup.storage.supabase.co/storage/v1/upload/resumable',
+        retryDelays:[0,3000,5000,10000,20000],
+        headers:{
+          authorization:'Bearer '+accessToken,
+          apikey:SUPABASE_PUBLISHABLE_KEY,
+          'x-upsert':'false'
+        },
+        uploadDataDuringCreation:true,
+        removeFingerprintOnSuccess:true,
+        chunkSize:6*1024*1024,
+        metadata:{
+          bucketName:'profile-music',
+          objectName:storagePath,
+          contentType:file.type||'audio/mpeg',
+          cacheControl:'3600'
+        },
+        onError:(error)=>reject(new Error('Upload Storage gagal: '+(error?.message||error))),
+        onProgress:(bytesUploaded,bytesTotal)=>{
+          const pct=Math.min(99,Math.round((bytesUploaded/bytesTotal)*100));
           status.textContent='⏳ Upload lagu '+pct+'%...';
-        }
-      };
-      xhr.onload=()=>{
-        if(finished)return;
-        if(xhr.status>=200&&xhr.status<300){finished=true;resolve();}
-        else{
-          let msg='HTTP '+xhr.status;
-          try{const j=JSON.parse(xhr.responseText);msg=j.message||j.error||msg;}catch(e){}
-          fail('Upload Storage gagal: '+msg);
-        }
-      };
-      xhr.onerror=()=>fail('Upload Storage gagal: sambungan rangkaian terputus.');
-      xhr.ontimeout=()=>fail('Upload Storage gagal: masa upload tamat. Cuba semula.');
-      xhr.onabort=()=>fail('Upload Storage dibatalkan.');
-      xhr.send(file);
+        },
+        onSuccess:()=>{status.textContent='⏳ Upload lagu 100%...';resolve();}
+      });
+      upload.findPreviousUploads().then(previousUploads=>{
+        if(previousUploads.length)upload.resumeFromPreviousUpload(previousUploads[0]);
+        upload.start();
+      }).catch(err=>reject(new Error('Gagal memulakan upload: '+(err?.message||err))));
     });
 
     status.textContent='⏳ Menyimpan tetapan...';
