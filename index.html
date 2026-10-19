@@ -537,6 +537,14 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
     <div class="dash-stat"><span class="stat-ico">💰</span>Jualan<div class="n" id="ssales">RM 0.00</div><div class="muted">Tidak termasuk dibatalkan</div></div>
     <div class="dash-stat"><span class="stat-ico">💵</span>Deposit<div class="n" id="sdep">RM 0.00</div><div class="muted">Jumlah deposit diterima</div></div>
   </div>
+  <div class="project-item" id="websiteAnalyticsPanel" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0 0 5px">📈 Statistik Pelawat Website</h3><div class="muted">Data website customer · 30 hari terakhir</div></div><button type="button" class="btn blue" onclick="loadWebsiteAnalytics()">↻ Muat Semula</button></div>
+    <div class="dash-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-top:14px">
+      <div class="dash-stat"><div class="muted">Pelawat Hari Ini</div><div class="n" id="waVisitorsToday">—</div></div><div class="dash-stat"><div class="muted">Paparan Hari Ini</div><div class="n" id="waViewsToday">—</div></div><div class="dash-stat"><div class="muted">Pelawat 30 Hari</div><div class="n" id="waVisitors30">—</div></div><div class="dash-stat"><div class="muted">Paparan 30 Hari</div><div class="n" id="waViews30">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px"><div class="project-item"><h3 style="margin-top:0">Halaman Popular (30 hari)</h3><div id="waPopularPages" class="muted">Memuatkan statistik...</div></div><div class="project-item"><h3 style="margin-top:0">Minat Customer</h3><div id="waIntentCount" style="font-size:28px;font-weight:900;color:#e50914">—</div><div class="muted">Klik katalog, booking atau WhatsApp dalam 30 hari</div></div></div>
+    <div class="muted" id="waAnalyticsStatus" style="margin-top:8px">Statistik hanya boleh dilihat oleh admin yang mempunyai akses sah.</div>
+  </div>
   <div class="dashboard-projects project-item"><h3>📋 Senarai Projek</h3><div id="dashboardProjectList">Memuatkan projek...</div></div>
     <div class="project-item" style="margin-top:14px"><b>Workflow</b><p>LEAD → QUOTATION → DEPOSIT → PRODUCTION → INSTALLATION → COMPLETED</p></div>
 </div>
@@ -620,6 +628,7 @@ function showScreen(id){
   window.scrollTo({top:0,behavior:'smooth'});
 
   if(id==='projects'||id==='dashboard'||id==='reports')renderData();
+  if(id==='dashboard')loadWebsiteAnalytics();
   if(id==='reports')renderAnnualRecords();
   if(id==='bookings')loadWebsiteBookings();
   if(id==='catalog')renderCatalog('Semua');
@@ -2929,5 +2938,21 @@ window.inlineDeleteReview=async function(id){
  if(!confirm('Padam review pelanggan ini?'))return;
  const {error}=await supabaseClient.from('customer_reviews').delete().eq('id',id);
  if(error){alert('❌ Gagal padam review: '+error.message);return;}await loadInlineFeedback();updateFeedbackSidebarBadge();
+};
+window.loadWebsiteAnalytics=async function(){
+ const status=document.getElementById('waAnalyticsStatus');
+ try{
+  const {data:sessionData}=await supabaseClient.auth.getSession();
+  if(!sessionData?.session){if(status)status.textContent='Sila log masuk sebagai admin untuk melihat statistik.';return;}
+  const {data,error}=await supabaseClient.rpc('get_website_analytics');if(error)throw error;const d=data||{};
+  document.getElementById('waVisitorsToday').textContent=Number(d.visitors_today||0).toLocaleString('ms-MY');
+  document.getElementById('waViewsToday').textContent=Number(d.views_today||0).toLocaleString('ms-MY');
+  document.getElementById('waVisitors30').textContent=Number(d.visitors_30d||0).toLocaleString('ms-MY');
+  document.getElementById('waViews30').textContent=Number(d.views_30d||0).toLocaleString('ms-MY');
+  document.getElementById('waIntentCount').textContent=Number(d.intent_30d||0).toLocaleString('ms-MY');
+  const names={home:'Home',katalog:'Katalog',projek:'Projek',booking:'Booking',maklum_balas:'Maklum Balas'},pages=Array.isArray(d.pages)?d.pages:[];
+  document.getElementById('waPopularPages').innerHTML=pages.length?pages.map(x=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #eee"><span>'+(names[x.page]||x.page)+'</span><b>'+Number(x.views||0).toLocaleString('ms-MY')+' paparan</b></div>').join(''):'Belum ada data lagi. Lawatan baru akan mula direkod selepas tracker aktif.';
+  if(status)status.textContent='Dikemas kini: '+new Date().toLocaleString('ms-MY')+'. Pelawat unik dianggarkan melalui ID rawak pada pelayar; data bermula selepas pemasangan.';
+ }catch(e){console.error('Statistik pelawat:',e);if(status)status.textContent='Statistik belum dapat dimuatkan. Semak sesi admin dan polisi database.';const box=document.getElementById('waPopularPages');if(box)box.textContent='Gagal memuatkan statistik.';}
 };
 </script></body></html>
