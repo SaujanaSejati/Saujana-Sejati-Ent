@@ -538,7 +538,7 @@ main{margin-left:250px;padding-top:76px;min-height:100vh}
     <div class="dash-stat"><span class="stat-ico">💵</span>Deposit<div class="n" id="sdep">RM 0.00</div><div class="muted">Jumlah deposit diterima</div></div>
   </div>
   <div class="project-item" id="websiteAnalyticsPanel" style="margin-top:14px">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0 0 5px">📈 Statistik Pelawat Website</h3><div class="muted">Data website customer · 30 hari terakhir</div></div><button type="button" class="btn blue" onclick="loadWebsiteAnalytics()">↻ Muat Semula</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0 0 5px">📈 Statistik Pelawat Website</h3><div class="muted">Data website customer · 30 hari terakhir</div></div><button id="waAnalyticsRefreshBtn" type="button" class="btn blue" onclick="window.loadWebsiteAnalytics(true)">↻ Muat Semula</button></div>
     <div class="dash-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-top:14px">
       <div class="dash-stat"><div class="muted">Pelawat Hari Ini</div><div class="n" id="waVisitorsToday">—</div></div><div class="dash-stat"><div class="muted">Paparan Hari Ini</div><div class="n" id="waViewsToday">—</div></div><div class="dash-stat"><div class="muted">Pelawat 30 Hari</div><div class="n" id="waVisitors30">—</div></div><div class="dash-stat"><div class="muted">Paparan 30 Hari</div><div class="n" id="waViews30">—</div></div>
     </div>
@@ -2939,8 +2939,11 @@ window.inlineDeleteReview=async function(id){
  const {error}=await supabaseClient.from('customer_reviews').delete().eq('id',id);
  if(error){alert('❌ Gagal padam review: '+error.message);return;}await loadInlineFeedback();updateFeedbackSidebarBadge();
 };
-window.loadWebsiteAnalytics=async function(){
+window.loadWebsiteAnalytics=async function(manual=false){
  const status=document.getElementById('waAnalyticsStatus');
+ const refreshBtn=document.getElementById('waAnalyticsRefreshBtn');
+ if(manual && status)status.textContent='⏳ Sedang memuat semula statistik...';
+ if(refreshBtn){refreshBtn.disabled=true;refreshBtn.style.opacity='.65';refreshBtn.textContent='⏳ Memuat...';}
  try{
   const {data:sessionData}=await supabaseClient.auth.getSession();
   if(!sessionData?.session){if(status)status.textContent='Sila log masuk sebagai admin untuk melihat statistik.';return;}
@@ -2953,6 +2956,7 @@ window.loadWebsiteAnalytics=async function(){
   const names={home:'Home',katalog:'Katalog',projek:'Projek',booking:'Booking',maklum_balas:'Maklum Balas'},pages=Array.isArray(d.pages)?d.pages:[];
   document.getElementById('waPopularPages').innerHTML=pages.length?pages.map(x=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #eee"><span>'+(names[x.page]||x.page)+'</span><b>'+Number(x.views||0).toLocaleString('ms-MY')+' paparan</b></div>').join(''):'Belum ada data lagi. Lawatan baru akan mula direkod selepas tracker aktif.';
   if(status)status.textContent='Dikemas kini: '+new Date().toLocaleString('ms-MY')+'. Pelawat unik dianggarkan melalui ID rawak pada pelayar; data bermula selepas pemasangan.';
- }catch(e){console.error('Statistik pelawat:',e);if(status)status.textContent='Statistik belum dapat dimuatkan. Semak sesi admin dan polisi database.';const box=document.getElementById('waPopularPages');if(box)box.textContent='Gagal memuatkan statistik.';}
+ }catch(e){console.error('Statistik pelawat:',e);if(status)status.textContent='Statistik gagal dimuatkan: '+(e?.message||'Ralat tidak diketahui');const box=document.getElementById('waPopularPages');if(box)box.textContent='Gagal memuatkan statistik.';}
+ finally{if(refreshBtn){refreshBtn.disabled=false;refreshBtn.style.opacity='1';refreshBtn.textContent='↻ Muat Semula';}}
 };
 </script></body></html>
