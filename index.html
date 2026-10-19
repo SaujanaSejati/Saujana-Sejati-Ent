@@ -924,6 +924,8 @@ async function enableNotifications(){
     }catch(e){permission=Notification.permission||'denied';}
   }
   if(btn)btn.textContent=(permission==='granted'?'🔔 Notifikasi Aktif':'🔊 Penggera Diaktifkan');
+  const globalLabel=document.getElementById('globalNotifLabel');
+  if(globalLabel)globalLabel.textContent=(permission==='granted'?'Notifikasi Aktif':'Uji Bunyi / Aktifkan');
   if(soundReady)await playBookingSound();
   if(permission==='granted'){
     try{new Notification('Saujana Sejati — Penggera Aktif',{body:'Bunyi dan notifikasi akan digunakan apabila booking baru diterima semasa sistem dibuka.'});}catch(e){}
